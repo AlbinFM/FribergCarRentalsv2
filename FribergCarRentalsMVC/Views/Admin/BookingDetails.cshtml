@@ -1,0 +1,22 @@
+﻿@model FribergCarRentalsMVC.Models.Booking
+
+@{
+    ViewData["Title"] = "Boknings Detaljer";
+}
+
+<div class="container mt-4">
+    <h1>Boknings detaljer</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Bokningsinformation</h5>
+            <p class="card-text"><strong>Kund:</strong> @Model.Customer?.FullName</p>
+            <p class="card-text"><strong>Bil:</strong> @Model.Car?.Brand @Model.Car?.Model </p>
+            <p class="card-text"><strong>Startdatum:</strong> @Model.StartDate.ToShortDateString()</p>
+            <p class="card-text"><strong>Slutdatum:</strong> @Model.EndDate.ToShortDateString()</p>
+            <p class="card-text"><strong>Bekräftad:</strong> @(Model.IsConfirmed ? "Ja" : "Nej")</p>
+        </div>
+    </div>
+
+    <a asp-action="Bookings" class="btn btn-primary mt-3">Tillbaka till Bokningar</a>
+</div>

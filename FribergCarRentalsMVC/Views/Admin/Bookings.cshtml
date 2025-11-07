@@ -1,0 +1,96 @@
+﻿@model IEnumerable<FribergCarRentalsMVC.Models.Booking>
+
+@{
+    ViewData["Title"] = "Bokningar";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">Bokningar</h1>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Kund</th>
+                <th>Bil</th>
+                <th>Startdatum</th>
+                <th>Slutdatum</th>
+                <th>Bekräftad</th>
+                <th>Åtgärder</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var booking in Model)
+            {
+                <tr>
+                    <td>@booking.Customer.FullName</td>
+                    <td>@booking.Car.Brand @booking.Car.Model</td>
+                    <td>@booking.StartDate.ToShortDateString()</td>
+                    <td>@booking.EndDate.ToShortDateString()</td>
+                    <td>@(booking.IsConfirmed ? "Ja" : "Nej")</td>
+                    <td>
+                        <a asp-action="BookingDetails" asp-route-id="@booking.Id" class="btn btn-info">Detaljer</a>
+                        @if (!booking.IsConfirmed)
+                        {
+                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#confirmModal-@booking.Id">
+                                Bekräfta
+                            </button>
+                            <div class="modal fade" id="confirmModal-@booking.Id" tabindex="-1" aria-labelledby="confirmModalLabel-@booking.Id" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="confirmModalLabel-@booking.Id">Bekräfta bokning</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Stäng"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            Är du säker på att du vill bekräfta bokningen för <strong>@booking.Customer.FullName</strong>?
+                                        </div>
+                                        <div class="modal-footer">
+                                            <form asp-controller="Booking" asp-action="ConfirmBooking" asp-route-id="@booking.Id" method="post">
+                                                <button type="submit" class="btn btn-success">Bekräfta</button>
+                                            </form>
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal-@booking.Id">
+                            Ta bort
+                        </button>
+                        <div class="modal fade" id="deleteModal-@booking.Id" tabindex="-1" aria-labelledby="deleteModalLabel-@booking.Id" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="deleteModalLabel-@booking.Id">Ta bort bokning</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Stäng"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Är du säker på att du vill ta bort bokningen för <strong>@booking.Customer.FullName</strong>?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <form asp-controller="Booking" asp-action="DeleteBooking" asp-route-id="@booking.Id" method="post">
+                                            <button type="submit" class="btn btn-danger">Ta bort</button>
+                                        </form>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="d-flex justify-content-end" style="margin-right:15vw; margin-bottom:5px;">
+    <a asp-action="Dashboard" class="btn btn-secondary">Tillbaka till dashboard</a>
+</div>

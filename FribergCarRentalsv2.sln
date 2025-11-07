@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FribergCarRentalsMVC", "FribergCarRentalsMVC\FribergCarRentalsMVC.csproj", "{C9B16E12-1962-4FF8-BAAD-420ED15FFE12}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FribergCarRentalsAPI", "FribergCarRentalsAPI\FribergCarRentalsAPI.csproj", "{68CA3B0B-746A-4654-BB6B-9142DE1D4E30}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C9B16E12-1962-4FF8-BAAD-420ED15FFE12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9B16E12-1962-4FF8-BAAD-420ED15FFE12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9B16E12-1962-4FF8-BAAD-420ED15FFE12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9B16E12-1962-4FF8-BAAD-420ED15FFE12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68CA3B0B-746A-4654-BB6B-9142DE1D4E30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68CA3B0B-746A-4654-BB6B-9142DE1D4E30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68CA3B0B-746A-4654-BB6B-9142DE1D4E30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68CA3B0B-746A-4654-BB6B-9142DE1D4E30}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

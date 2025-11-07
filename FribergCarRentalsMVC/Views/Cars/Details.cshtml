@@ -1,0 +1,25 @@
+﻿@model FribergCarRentalsMVC.Models.Car
+
+<div class="container mt-4">
+    <h1 class="mb-4">Bil Detaljer</h1>
+    <div class="row">
+        <div class="col-md-6">
+            @if (Model.ImageUrls.Any())
+            {
+                <img src="@Model.ImageUrls.First()" class="img-fluid rounded" alt="@Model.Model" style="width: 100%; max-height: 400px; object-fit: contain;">
+            }
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="card-title">@Model.Brand @Model.Model</h2>
+                    <p class="card-text"><strong>År:</strong> <span class="fs-5">@Model.Year</span></p>
+                    <p class="card-text"><strong>Färg:</strong> <span class="fs-5">@Model.Color</span></p>
+                    <p class="card-text"><strong>Pris per dag:</strong> <span class="fs-5">@Model.PriceRate.ToString("C")</span></p>
+                    <a asp-controller="Booking" asp-action="CreateBooking" asp-route-carId="@Model.Id" class="btn btn-success">Boka denna bil</a>
+                    <a asp-action="Index" class="btn btn-secondary">Tillbaka</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

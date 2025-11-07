@@ -1,0 +1,65 @@
+﻿@model IEnumerable<FribergCarRentalsMVC.Models.Customer>
+
+@{
+    ViewData["Title"] = "Kunder";
+}
+
+<h1>Kunder</h1>
+
+@if (TempData["AlertMessage"] != null)
+{
+    var alertType = TempData["AlertType"] as string ?? "danger";
+    <div class="alert alert-@alertType alert-dismissible fade show" role="alert">
+        @TempData["AlertMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Stäng"></button>
+    </div>
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Namn</th>
+            <th>E-post</th>
+            <th>Åtgärder</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var customer in Model)
+        {
+            <tr>
+                <td>@customer.FullName</td>
+                <td>@customer.Email</td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <a asp-action="CustomerDetails" asp-route-id="@customer.Id" class="btn btn-info me-1">Detaljer</a>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal-@customer.Id">
+                            Ta bort
+                        </button>
+                    </div>
+                    <div class="modal fade" id="deleteModal-@customer.Id" tabindex="-1" aria-labelledby="deleteModalLabel-@customer.Id" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteModalLabel-@customer.Id">Bekräfta borttagning</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Stäng"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Är du säker på att du vill ta bort <strong>@customer.FullName</strong>?
+                                </div>
+                                <div class="modal-footer">
+                                    <form asp-action="DeleteCustomer" asp-route-id="@customer.Id" method="post">
+                                        <button type="submit" class="btn btn-danger">Ja, ta bort</button>
+                                    </form>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div class="d-flex justify-content-end" style="margin-right:13vw; margin-bottom:5px;">
+    <a asp-action="Dashboard" class="btn btn-secondary">Tillbaka till dashboard</a>
+</div>

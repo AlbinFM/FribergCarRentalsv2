@@ -1,0 +1,39 @@
+﻿@{
+    ViewData["Title"] = "Adminpanel";
+}
+
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Adminpanel</h2>
+
+    <div class="row justify-content-center">
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center d-flex flex-column">
+                    <h5 class="card-title">Hantera bilar</h5>
+                    <p class="card-text flex-grow-1">Lägg till, redigera eller ta bort bilar.</p>
+                    <a class="btn btn-primary mt-auto" asp-controller="Cars" asp-action="Index">Gå till bilar</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center d-flex flex-column">
+                    <h5 class="card-title">Hantera kunder</h5>
+                    <p class="card-text flex-grow-1">Visa, redigera eller ta bort kundinformation.</p>
+                    <a class="btn btn-primary mt-auto" asp-controller="Customer" asp-action="Index">Gå till kunder</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center d-flex flex-column">
+                    <h5 class="card-title">Hantera bokningar</h5>
+                    <p class="card-text flex-grow-1">Visa eller ta bort bokningar.</p>
+                    <a class="btn btn-primary mt-auto" asp-controller="Booking" asp-action="Index">Gå till bokningar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,55 @@
+﻿@model IEnumerable<FribergCarRentalsMVC.Models.Car>
+
+@{
+    ViewData["Title"] = "Tillgängliga bilar";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-4">Tillgängliga bilar</h1>
+
+    @if (TempData["AlertMessage"] != null)
+    {
+        var alertType = TempData["AlertType"] as string ?? "success";
+        <div class="alert alert-@alertType alert-dismissible fade show" role="alert">
+            @TempData["AlertMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-warning text-center">
+            Det finns inga tillängliga bilar just nu. Återkom vid ett senare tillfälle!
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @foreach (var car in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        @if (car.ImageUrls != null && car.ImageUrls.Any())
+                        {
+                            <img src="@car.ImageUrls.First()" class="card-img-top" alt="@car.Model" style="height: 200px; object-fit: cover;">
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title">@car.Brand @car.Model</h5>
+                            <p class="card-text">År: @car.Year</p>
+                            <p class="card-text">Färg: @car.Color</p>
+                            <p class="card-text">Pris per dag: @car.PriceRate.ToString("C")</p>
+                        </div>
+                        <div class="card-footer">
+                            <a asp-controller="Cars" asp-action="Details" asp-route-id="@car.Id" class="btn btn-primary">Gå till detaljer</a>
+                            @if (Context.Session.GetInt32("AdminId") != null)
+                            {
+                                <a asp-controller="Admin" asp-action="EditCar" asp-route-id="@car.Id" class="btn btn-warning ms-2">Redigera</a>
+                                <a asp-controller="Admin" asp-action="DeleteCar" asp-route-id="@car.Id" class="btn btn-danger ms-2">Ta bort</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
