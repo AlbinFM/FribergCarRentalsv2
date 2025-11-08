@@ -1,0 +1,57 @@
+﻿@model FribergCarRentalsAPI.Models.Car
+
+@{
+    ViewData["Title"] = "Redigera bil";
+}
+
+<h1>Redigera</h1>
+<h4>Bil-annons</h4>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="EditCar" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="Brand" class="control-label">Märke:</label>
+                <input asp-for="Brand" class="form-control" />
+                <span asp-validation-for="Brand" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Model" class="control-label">Modell:</label>
+                <input asp-for="Model" class="form-control" />
+                <span asp-validation-for="Model" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Year" class="control-label">Årsmodell:</label>
+                <input asp-for="Year" class="form-control" />
+                <span asp-validation-for="Year" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Color" class="control-label">Färg:</label>
+                <input asp-for="Color" class="form-control" />
+                <span asp-validation-for="Color" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PriceRate" class="control-label">Kostnad per dag:</label>
+                <input asp-for="PriceRate" class="form-control" />
+                <span asp-validation-for="PriceRate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label class="control-label">Bild URL:</label>
+                <input name="ImageUrlsString" class="form-control" value="@(Model.ImageUrls != null ? string.Join(",", Model.ImageUrls) : "")" placeholder="Ange bild-URLs separerade med kommatecken" />
+                <span class="text-danger"></span>
+            </div>
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary w-50">Spara ändringar</button>
+                <a asp-action="Dashboard" class="btn btn-secondary w-50">Tillbaka till dashboard</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

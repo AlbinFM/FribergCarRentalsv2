@@ -1,0 +1,30 @@
+﻿@model FribergCarRentalsAPI.Models.Customer
+
+@{
+    ViewData["Title"] = "Kunddetaljer";
+}
+
+<h1>Kunddetaljer</h1>
+<p><strong>Namn:</strong> @Model.FullName</p>
+<p><strong>E-post:</strong> @Model.Email</p>
+
+@if (Model.Bookings != null && Model.Bookings.Any())
+{
+    <h3>Bokningar</h3>
+    <ul>
+        @foreach (var booking in Model.Bookings)
+        {
+            <li>
+                Bil: @booking.Car?.Brand @booking.Car?.Model,
+                Från: @booking.StartDate.ToShortDateString(),
+                Till: @booking.EndDate.ToShortDateString()
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p>Inga bokningar.</p>
+}
+
+<a asp-action="ShowCustomers" class="btn btn-secondary">Tillbaka till kunder</a>

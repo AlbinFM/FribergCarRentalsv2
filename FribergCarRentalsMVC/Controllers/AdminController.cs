@@ -1,7 +1,4 @@
-﻿using FribergCarRentalsMVC.Data;
-using FribergCarRentalsMVC.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace FribergCarRentalsMVC.Controllers
 {
@@ -23,7 +20,7 @@ namespace FribergCarRentalsMVC.Controllers
 
         // Hantera inloggning för admin
         [HttpPost]
-        public async Task<IActionResult> Login(string email, string password)
+        public async Task<IActionResult> LoginAsync(string email, string password)
         {
             var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Email == email && a.Password == password);
             if (admin == null)
@@ -51,7 +48,7 @@ namespace FribergCarRentalsMVC.Controllers
         }
 
         // Visa alla bilar
-        public async Task<IActionResult> Cars()
+        public async Task<IActionResult> ShowCarsAsync()
         {
             if (HttpContext.Session.GetInt32("AdminId") == null)
                 return RedirectToAction("AdminLogin");
@@ -61,7 +58,7 @@ namespace FribergCarRentalsMVC.Controllers
         }
 
         // Visa formulär för att skapa bil
-        public IActionResult CreateCar()
+        public IActionResult CreateCarAsync()
         {
             if (HttpContext.Session.GetInt32("AdminId") == null)
                 return RedirectToAction("AdminLogin");
@@ -70,7 +67,7 @@ namespace FribergCarRentalsMVC.Controllers
 
         // Skapa bil (POST)
         [HttpPost]
-        public async Task<IActionResult> CreateCar(Car car)
+        public async Task<IActionResult> CreateCarAsync(Car car)
         {
             if (ModelState.IsValid)
             {
@@ -84,7 +81,7 @@ namespace FribergCarRentalsMVC.Controllers
         }
 
         // Redigera bil (GET)
-        public async Task<IActionResult> EditCar(int id)
+        public async Task<IActionResult> EditCarAsync(int id)
         {
             if (HttpContext.Session.GetInt32("AdminId") == null)
                 return RedirectToAction("AdminLogin");
@@ -97,11 +94,11 @@ namespace FribergCarRentalsMVC.Controllers
 
         // Redigera bil (POST)
         [HttpPost]
-        public async Task<IActionResult> EditCar(Car car, string ImageUrlsString)
+        public async Task<IActionResult> EditCarAsync(Car car, string imageUrlsString)
         {
             if (ModelState.IsValid)
             {
-                car.ImageUrls = ImageUrlsString?
+                car.ImageUrls = imageUrlsString?
                     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) //Efter man redigerade en bil så pekade annonsen på listan med bilder istälet för URL:n, så hittade denna kod på nätet som konverterar URL:n till en lista innan den sparas.
                     .ToList() ?? new List<string>();
 
@@ -115,7 +112,7 @@ namespace FribergCarRentalsMVC.Controllers
         }
 
         // Ta bort bil (GET)
-        public async Task<IActionResult> DeleteCar(int id)
+        public async Task<IActionResult> DeleteCarAsync(int id)
         {
             if (HttpContext.Session.GetInt32("AdminId") == null)
                 return RedirectToAction("AdminLogin");
@@ -128,7 +125,7 @@ namespace FribergCarRentalsMVC.Controllers
 
         // Ta bort bil (POST)
         [HttpPost]
-        public async Task<IActionResult> DeleteCarConfirmed(int id)
+        public async Task<IActionResult> DeleteCarConfirmedAsync(int id)
         {
             var car = await _context.Cars.FindAsync(id);
             if (car != null)
@@ -142,7 +139,7 @@ namespace FribergCarRentalsMVC.Controllers
         }
 
         // Visa alla kunder
-        public async Task<IActionResult> Customers()
+        public async Task<IActionResult> ShowCustomersAsync()
         {
             if (HttpContext.Session.GetInt32("AdminId") == null)
                 return RedirectToAction("AdminLogin");
@@ -153,7 +150,7 @@ namespace FribergCarRentalsMVC.Controllers
 
         // Visa detaljer för en kund
         [HttpGet]
-        public async Task<IActionResult> CustomerDetails(int id)
+        public async Task<IActionResult> CustomerDetailsAsync(int id)
         {
             if (HttpContext.Session.GetInt32("AdminId") == null)
                 return RedirectToAction("AdminLogin");
@@ -171,7 +168,7 @@ namespace FribergCarRentalsMVC.Controllers
 
         // Visa bekräftelse för att ta bort kund (GET)
         [HttpGet]
-        public async Task<IActionResult> DeleteCustomer(int id)
+        public async Task<IActionResult> DeleteCustomerAsync(int id)
         {
             if (HttpContext.Session.GetInt32("AdminId") == null)
                 return RedirectToAction("AdminLogin");
@@ -188,7 +185,7 @@ namespace FribergCarRentalsMVC.Controllers
 
         // Ta bort kund (POST)
         [HttpPost, ActionName("DeleteCustomer")]
-        public async Task<IActionResult> DeleteCustomerConfirmed(int id)
+        public async Task<IActionResult> DeleteCustomerConfirmedAsync(int id)
         {
             var customer = await _context.Customers
                 .Include(c => c.Bookings)
@@ -205,11 +202,11 @@ namespace FribergCarRentalsMVC.Controllers
                 TempData["AlertMessage"] = "Kund borttagen!";
                 TempData["AlertType"] = "danger";
             }
-            return RedirectToAction("Customers");
+            return RedirectToAction("ShowCustomers");
         }
 
         // Visa alla bokningar
-        public async Task<IActionResult> Bookings()
+        public async Task<IActionResult> ShowBookingsAsync()
         {
             if (HttpContext.Session.GetInt32("AdminId") == null)
                 return RedirectToAction("AdminLogin");

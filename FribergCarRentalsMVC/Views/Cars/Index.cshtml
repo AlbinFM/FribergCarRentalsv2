@@ -1,4 +1,4 @@
-﻿@model IEnumerable<FribergCarRentalsMVC.Models.Car>
+﻿@model IEnumerable<FribergCarRentalsAPI.Models.Car>
 
 @{
     ViewData["Title"] = "Tillgängliga bilar";
@@ -40,7 +40,7 @@
                             <p class="card-text">Pris per dag: @car.PriceRate.ToString("C")</p>
                         </div>
                         <div class="card-footer">
-                            <a asp-controller="Cars" asp-action="Details" asp-route-id="@car.Id" class="btn btn-primary">Gå till detaljer</a>
+                            <a asp-controller="Cars" asp-action="CarDetails" asp-route-id="@car.Id" class="btn btn-primary">Gå till detaljer</a>
                             @if (Context.Session.GetInt32("AdminId") != null)
                             {
                                 <a asp-controller="Admin" asp-action="EditCar" asp-route-id="@car.Id" class="btn btn-warning ms-2">Redigera</a>

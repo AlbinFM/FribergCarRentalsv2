@@ -1,8 +1,5 @@
-﻿using FribergCarRentalsMVC.Data;
-using FribergCarRentalsMVC.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 
 namespace FribergCarRentalsMVC.Controllers
 {
@@ -16,15 +13,15 @@ namespace FribergCarRentalsMVC.Controllers
         }
 
         // Visa formulär för att skapa en bokning
-        public IActionResult CreateBooking(int carId)
+        public IActionResult CreateBookingAsync(int carId)
         {
             var customerId = HttpContext.Session.GetInt32("CustomerId");
             if (customerId == null)
-                return RedirectToAction("Login", "Customer");
+                return RedirectToAction("CustomerLogin", "Customer");
 
             var customer = _context.Customers.FirstOrDefault(c => c.Id == customerId.Value);
             if (customer == null)
-                return RedirectToAction("Login", "Customer");
+                return RedirectToAction("CustomerLogin", "Customer");
 
             ViewBag.CarId = new SelectList(_context.Cars, "Id", "Brand", carId);
 
@@ -40,7 +37,7 @@ namespace FribergCarRentalsMVC.Controllers
         // Skapa bokning (POST)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateBooking(Booking booking)
+        public async Task<IActionResult> CreateBookingAsync(Booking booking)
         {
             if (ModelState.IsValid)
             {
@@ -71,7 +68,7 @@ namespace FribergCarRentalsMVC.Controllers
         // Ta bort en bokning
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteBooking(int id)
+        public async Task<IActionResult> DeleteBookingAsync(int id)
         {
             var booking = await _context.Bookings.FindAsync(id);
             if (booking != null)
@@ -88,7 +85,7 @@ namespace FribergCarRentalsMVC.Controllers
 
         // Bekräfta en bokning (admin)
         [HttpPost]
-        public async Task<IActionResult> ConfirmBooking(int id)
+        public async Task<IActionResult> ConfirmBookingAsync(int id)
         {
             var booking = await _context.Bookings.FindAsync(id);
             if (booking != null)
@@ -98,11 +95,11 @@ namespace FribergCarRentalsMVC.Controllers
                 TempData["SuccessMessage"] = "Bokning bekräftad!";
             }
 
-            return RedirectToAction("Bookings", "Admin");
+            return RedirectToAction("ShowBookings", "Admin");
         }
 
         // Visa alla bokningar för en kund
-        public async Task<IActionResult> MyBookings(int customerId)
+        public async Task<IActionResult> MyBookingsAsync(int customerId)
         {
             var bookings = await _context.Bookings
                 .Where(b => b.CustomerId == customerId)

@@ -1,8 +1,4 @@
-﻿using FribergCarRentalsMVC.Data;
-using FribergCarRentalsMVC.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace FribergCarRentalsMVC.Controllers
 {
@@ -16,33 +12,33 @@ namespace FribergCarRentalsMVC.Controllers
         }
 
         // Visa registreringsformulär
-        public IActionResult Register()
+        public IActionResult CustomerRegister()
         {
             return View();
         }
 
         // Skapa kund (POST)
         [HttpPost]
-        public async Task<IActionResult> Register(Customer customer)
+        public async Task<IActionResult> CustomerRegister(Customer customer)
         {
             if (ModelState.IsValid)
             {
                 _context.Customers.Add(customer);
                 await _context.SaveChangesAsync();
-                return RedirectToAction("Login");
+                return RedirectToAction("CustomerLogin");
             }
             return View(customer);
         }
 
         // Visa inloggningsformulär
-        public IActionResult Login()
+        public IActionResult CustomerLogin()
         {
             return View();
         }
 
         // Hantera inloggning (POST)
         [HttpPost]
-        public async Task<IActionResult> Login(string email, string password)
+        public async Task<IActionResult> CustomerLogin(string email, string password)
         {
             var customer = await _context.Customers
                 .FirstOrDefaultAsync(c => c.Email == email && c.Password == password);
@@ -61,15 +57,15 @@ namespace FribergCarRentalsMVC.Controllers
         public IActionResult Logout()
         {
             HttpContext.Session.Remove("CustomerId");
-            return RedirectToAction("Login");
+            return RedirectToAction("CustomerLogin");
         }
 
         // Visa alla bokningar för inloggad kund
-        public async Task<IActionResult> MyBookings()
+        public async Task<IActionResult> MyBookingsAsync()
         {
             var customerId = HttpContext.Session.GetInt32("CustomerId");
             if (customerId == null)
-                return RedirectToAction("Login");
+                return RedirectToAction("CustomerLogin");
 
             var bookings = await _context.Bookings
                 .Include(b => b.Car)

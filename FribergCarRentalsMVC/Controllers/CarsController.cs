@@ -1,8 +1,4 @@
-﻿using FribergCarRentalsMVC.Data;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+﻿using Microsoft.AspNetCore.Mvc;
 
 namespace FribergCarRentalsMVC.Controllers
 {
@@ -31,7 +27,7 @@ namespace FribergCarRentalsMVC.Controllers
         }
 
         // GET: Cars/Details/5
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> CarDetailsAsync(int? id)
         {
             if (id == null)
             {
