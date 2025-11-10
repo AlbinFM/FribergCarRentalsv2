@@ -1,46 +1,30 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FribergCarRentalsMVC.ApiClients.Interfaces;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FribergCarRentalsMVC.Controllers
 {
     public class CarsController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly ICarsApiClient _api;
 
-        public CarsController(AppDbContext context)
+        public CarsController(ICarsApiClient api)
         {
-            _context = context;
+            _api = api;
         }
 
         // GET: Cars
         public async Task<IActionResult> Index()
         {
-            var bookedCarIds = await _context.Bookings
-                .Where(b => b.IsConfirmed && b.EndDate >= DateTime.Today)
-                .Select(b => b.CarId)
-                .ToListAsync();
-
-            var availableCars = await _context.Cars
-                .Where(c => !bookedCarIds.Contains(c.Id))
-                .ToListAsync();
-
-            return View(availableCars);
+            var cars = await _api.GetAvailableCars();
+            return View(cars);
         }
 
         // GET: Cars/Details/5
-        public async Task<IActionResult> CarDetailsAsync(int? id)
+        public async Task<IActionResult> CarDetails(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var car = await _context.Cars
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (car == null)
-            {
-                return NotFound();
-            }
-
+            if (id is null) return NotFound();
+            var car = await _api.GetDetails(id.Value);
+            if (car is null) return NotFound();
             return View(car);
         }
     }

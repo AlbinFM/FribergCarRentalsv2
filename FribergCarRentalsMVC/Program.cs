@@ -1,39 +1,85 @@
+using FribergCarRentalsMVC.ApiClients;
+using FribergCarRentalsMVC.ApiClients.Interfaces;
+using FribergCarRentalsMVC.Options;
+using FribergCarRentalsMVC.Services;
+using Microsoft.Extensions.Options;
 
-        var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
-            
-        builder.Services.AddControllersWithViews();
-        
+// ---- Options ----
+builder.Services.Configure<ApiOptions>(builder.Configuration.GetSection("Api"));
 
-        builder.Services.AddDistributedMemoryCache();
+// ---- MVC + Session ----
+builder.Services.AddControllersWithViews();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(opt =>
+{
+    opt.Cookie.HttpOnly = true;
+    opt.Cookie.IsEssential = true;
+    opt.IdleTimeout = TimeSpan.FromHours(8);
+});
+builder.Services.AddHttpContextAccessor();
 
-        builder.Services.AddSession(options =>
-        {
-            options.IdleTimeout = TimeSpan.FromMinutes(30);
-            options.Cookie.HttpOnly = true;
-            options.Cookie.IsEssential = true;
-        });
+// ---- Delegating handler som sätter Bearer från session ----
+builder.Services.AddTransient<JwtSessionHandler>();
 
-        var app = builder.Build();
+// ---- Auth-klient + service ----
+builder.Services.AddHttpClient<IAuthApiClient, AuthApiClient>((sp, http) =>
+{
+    var api = sp.GetRequiredService<IOptions<ApiOptions>>().Value;
+    http.BaseAddress = new Uri(api.BaseUrl);
+})
+.AddHttpMessageHandler<JwtSessionHandler>(); 
 
-        // Configure the HTTP request pipeline.
-        if (!app.Environment.IsDevelopment())
-        {
-            app.UseExceptionHandler("/Home/Error");
-            app.UseHsts();
-        }
+builder.Services.AddScoped<IAuthService, AuthService>();
 
-        app.UseHttpsRedirection();
-        app.UseStaticFiles();
+// ---- Övriga ApiClients (alla med JWT-handler) ----
+builder.Services.AddHttpClient<ICarsApiClient, CarsApiClient>((sp, http) =>
+{
+    var api = sp.GetRequiredService<IOptions<ApiOptions>>().Value;
+    http.BaseAddress = new Uri(api.BaseUrl);
+})
+.AddHttpMessageHandler<JwtSessionHandler>();
 
-        app.UseRouting();
+builder.Services.AddHttpClient<IBookingApiClient, BookingApiClient>((sp, http) =>
+{
+    var api = sp.GetRequiredService<IOptions<ApiOptions>>().Value;
+    http.BaseAddress = new Uri(api.BaseUrl);
+})
+.AddHttpMessageHandler<JwtSessionHandler>();
 
-        app.UseSession();
+builder.Services.AddHttpClient<IAdminApiClient, AdminApiClient>((sp, http) =>
+{
+    var api = sp.GetRequiredService<IOptions<ApiOptions>>().Value;
+    http.BaseAddress = new Uri(api.BaseUrl);
+})
+.AddHttpMessageHandler<JwtSessionHandler>();
 
-        app.UseAuthorization();
+builder.Services.AddHttpClient<ICustomerApiClient, CustomerApiClient>((sp, http) =>
+    {
+        var api = sp.GetRequiredService<IOptions<ApiOptions>>().Value;
+        http.BaseAddress = new Uri(api.BaseUrl);
+    })
+    .AddHttpMessageHandler<JwtSessionHandler>();
 
-        app.MapControllerRoute(
-            name: "default",
-            pattern: "{controller=Home}/{action=Index}/{id?}");
+var app = builder.Build();
 
-        app.Run();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseSession();     
+app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.Run();

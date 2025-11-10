@@ -1,0 +1,21 @@
+﻿@model FribergCarRentalsMVC.DTOs.BookingsAllDto.BookingDto
+
+@{
+    ViewData["Title"] = "Avboka bokning";
+}
+
+<h3>Är du säker på att du vill avboka?</h3>
+
+<dl class="row">
+    <dt class="col-sm-3">CarId</dt><dd class="col-sm-9">@Model.CarId</dd>
+    <dt class="col-sm-3">Start</dt><dd class="col-sm-9">@Model.StartDate:g</dd>
+    <dt class="col-sm-3">Slut</dt><dd class="col-sm-9">@Model.EndDate:g</dd>
+    <dt class="col-sm-3">Bekräftad</dt><dd class="col-sm-9">@(Model.IsConfirmed ? "Ja" : "Nej")</dd>
+</dl>
+
+<form asp-action="DeleteBooking" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.Id" />
+    <button type="submit" class="btn btn-danger">Avboka</button>
+    <a asp-action="MyBookings" class="btn btn-secondary ms-2">Tillbaka</a>
+</form>

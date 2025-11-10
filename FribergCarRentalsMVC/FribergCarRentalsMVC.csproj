@@ -4,6 +4,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>a773bea7-b80d-467d-88a0-d723bd5b5923</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -20,9 +21,5 @@
         <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
         <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
     </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\FribergCarRentalsAPI\FribergCarRentalsAPI.csproj" />
-    </ItemGroup>
-
+    
 </Project>

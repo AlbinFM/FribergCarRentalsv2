@@ -1,5 +1,4 @@
-﻿@model IEnumerable<FribergCarRentalsAPI.Models.Booking>
-
+﻿@model IEnumerable<FribergCarRentalsMVC.DTOs.BookingsAllDto.BookingDto>
 @{
     ViewData["Title"] = "Mina bokningar";
 }
@@ -7,11 +6,9 @@
 <div class="container mt-4">
     <h2 class="mb-4">Mina bokningar</h2>
 
-    @if (TempData["SuccessMessage"] != null)
+    @if (TempData["Success"] is string ok)
     {
-        <div class="alert alert-success">
-            @TempData["SuccessMessage"]
-        </div>
+        <div class="alert alert-success">@ok</div>
     }
 
     @if (!Model.Any())
@@ -24,7 +21,7 @@
             <table class="table table-bordered table-striped">
                 <thead class="table-dark">
                     <tr>
-                        <th>Bil</th>
+                        <th>Bil (ID)</th>
                         <th>Startdatum</th>
                         <th>Slutdatum</th>
                         <th>Bekräftad</th>
@@ -35,14 +32,19 @@
                     @foreach (var booking in Model)
                     {
                         <tr>
-                            <td>@booking.Car?.Brand  @booking.Car?.Model</td>
+                            <td>@booking.CarId</td>
                             <td>@booking.StartDate.ToShortDateString()</td>
                             <td>@booking.EndDate.ToShortDateString()</td>
                             <td>@(booking.IsConfirmed ? "Ja" : "Nej")</td>
                             <td>
                                 @if (booking.StartDate > DateTime.Now)
                                 {
-                                    <form asp-controller="Booking" asp-action="DeleteBooking" asp-route-id="@booking.Id" method="post" onsubmit="return confirm('Är du säker på att du vill ta bort bokningen?');">
+                                    <form asp-controller="Booking"
+                                          asp-action="DeleteBooking"
+                                          asp-route-id="@booking.Id"
+                                          method="post"
+                                          onsubmit="return confirm('Är du säker på att du vill ta bort bokningen?');">
+                                        @Html.AntiForgeryToken()
                                         <button type="submit" class="btn btn-danger btn-sm">Avboka</button>
                                     </form>
                                 }

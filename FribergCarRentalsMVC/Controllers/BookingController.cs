@@ -1,112 +1,92 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using FribergCarRentalsMVC.ApiClients.Interfaces;
+using FribergCarRentalsMVC.DTOs;
+using Microsoft.AspNetCore.Mvc;
 
-namespace FribergCarRentalsMVC.Controllers
+namespace FribergCarRentalsMVC.Controllers;
+
+public class BookingController : Controller
 {
-    public class BookingController : Controller
+    private readonly IBookingApiClient _api;
+
+    public BookingController(IBookingApiClient api)
     {
-        private readonly AppDbContext _context;
+        _api = api;
+    }
 
-        public BookingController(AppDbContext context)
+    // GET: Booking/CreateBookingAsync?carId=5
+    [HttpGet]
+    public IActionResult CreateBooking(int carId)
+    {
+        // Hämta customerId från session
+        var customerId = HttpContext.Session.GetInt32("CustomerId");
+        if (customerId is null)
+            return RedirectToAction("Login", "Customer");
+        
+        var m = new BookingsAllDto.CreateBookingDto
         {
-            _context = context;
-        }
+            CarId = carId,
+            CustomerId = customerId.Value,
+            StartDate = DateTime.Today,
+            EndDate = DateTime.Today
+        };
 
-        // Visa formulär för att skapa en bokning
-        public IActionResult CreateBookingAsync(int carId)
+        return View(m);
+    }
+
+    // POST: Booking/CreateBookingAsync
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateBooking(BookingsAllDto.CreateBookingDto dto)
+    {
+        // Date validation
+        if (dto.StartDate > dto.EndDate)
+            ModelState.AddModelError(nameof(dto.EndDate), "Slutdatum måste vara efter startdatum.");
+
+        if (!ModelState.IsValid)
+            return View(dto);
+
+        try
         {
-            var customerId = HttpContext.Session.GetInt32("CustomerId");
-            if (customerId == null)
-                return RedirectToAction("CustomerLogin", "Customer");
+            await _api.CreateBooking(dto);
 
-            var customer = _context.Customers.FirstOrDefault(c => c.Id == customerId.Value);
-            if (customer == null)
-                return RedirectToAction("CustomerLogin", "Customer");
-
-            ViewBag.CarId = new SelectList(_context.Cars, "Id", "Brand", carId);
-
-            var booking = new Booking
-            {
-                CarId = carId,
-                CustomerId = customerId.Value,
-                Customer = customer
-            };
-            return View(booking);
+            TempData["Success"] = "Bokning skapad!";
+            return RedirectToAction(nameof(Confirmation));
         }
-
-        // Skapa bokning (POST)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateBookingAsync(Booking booking)
+        catch (HttpRequestException ex)
         {
-            if (ModelState.IsValid)
-            {
-                if (booking.StartDate > booking.EndDate)
-                {
-                    ModelState.AddModelError(string.Empty, "Slutdatum måste vara efter startdatum.");
-                    ViewBag.CarId = new SelectList(_context.Cars, "Id", "Brand", booking.CarId);
-                    ViewBag.CustomerId = booking.CustomerId;
-                    return View(booking);
-                }
-
-                _context.Add(booking);
-                await _context.SaveChangesAsync();
-                return RedirectToAction("Confirmation");
-            }
-
-            ViewBag.CarId = new SelectList(_context.Cars, "Id", "Brand", booking.CarId);
-            ViewBag.CustomerId = booking.CustomerId;
-            return View(booking);
+            ModelState.AddModelError("", $"Kunde inte skapa bokning: {ex.Message}");
+            return View(dto);
         }
+    }
 
-        // Visa bekräftelsesida efter bokning
-        public IActionResult Confirmation()
-        {
-            return View();
-        }
+    // GET: Booking/Confirmation
+    [HttpGet]
+    public IActionResult Confirmation() => View();
 
-        // Ta bort en bokning
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteBookingAsync(int id)
-        {
-            var booking = await _context.Bookings.FindAsync(id);
-            if (booking != null)
-            {
-                _context.Bookings.Remove(booking);
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Bokning avbokad!";
-                var customerId = booking.CustomerId;
-                return RedirectToAction("MyBookings", new { customerId });
-            }
 
-            return NotFound();
-        }
+    // POST: Booking/DeleteBookingAsync/{id}
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteBooking(int id)
+    {
+        var ok = await _api.DeleteBooking(id);
 
-        // Bekräfta en bokning (admin)
-        [HttpPost]
-        public async Task<IActionResult> ConfirmBookingAsync(int id)
-        {
-            var booking = await _context.Bookings.FindAsync(id);
-            if (booking != null)
-            {
-                booking.IsConfirmed = true;
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Bokning bekräftad!";
-            }
+        TempData["Success"] = ok ? "Bokningen är avbokad!" : "Kunde inte avboka bokningen.";
 
-            return RedirectToAction("ShowBookings", "Admin");
-        }
+        return RedirectToAction(nameof(MyBookings));
+    }
 
-        // Visa alla bokningar för en kund
-        public async Task<IActionResult> MyBookingsAsync(int customerId)
-        {
-            var bookings = await _context.Bookings
-                .Where(b => b.CustomerId == customerId)
-                .Include(b => b.Car)
-                .ToListAsync();
+    // GET: Booking/MyBookingsAsync
+    [HttpGet]
+    public async Task<IActionResult> MyBookings()
+    {
+        var customerId = HttpContext.Session.GetInt32("CustomerId");
 
-            return View(bookings);
-        }
+        if (customerId is null)
+            return RedirectToAction("Login", "Customer");
+
+        var list = await _api.MyBookings(customerId.Value);
+
+        return View(list);
     }
 }

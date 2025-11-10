@@ -1,5 +1,4 @@
-﻿@model IEnumerable<FribergCarRentalsAPI.Models.Customer>
-
+﻿@model IEnumerable<FribergCarRentalsMVC.DTOs.CustomersAllDto.CustomerDto>
 @{
     ViewData["Title"] = "Kunder";
 }
@@ -24,30 +23,32 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var customer in Model)
+        @foreach (var c in Model)
         {
             <tr>
-                <td>@customer.FullName</td>
-                <td>@customer.Email</td>
+                <td>@c.FullName</td>
+                <td>@c.Email</td>
                 <td>
                     <div class="btn-group" role="group">
-                        <a asp-action="CustomerDetails" asp-route-id="@customer.Id" class="btn btn-info me-1">Detaljer</a>
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal-@customer.Id">
+                        <a asp-controller="Admin" asp-action="CustomerDetails" asp-route-id="@c.Id" class="btn btn-info me-1">Detaljer</a>
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal-@c.Id">
                             Ta bort
                         </button>
                     </div>
-                    <div class="modal fade" id="deleteModal-@customer.Id" tabindex="-1" aria-labelledby="deleteModalLabel-@customer.Id" aria-hidden="true">
+
+                    <div class="modal fade" id="deleteModal-@c.Id" tabindex="-1" aria-labelledby="deleteModalLabel-@c.Id" aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h5 class="modal-title" id="deleteModalLabel-@customer.Id">Bekräfta borttagning</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Stäng"></button>
+                                    <h5 class="modal-title" id="deleteModalLabel-@c.Id">Bekräfta borttagning</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body">
-                                    Är du säker på att du vill ta bort <strong>@customer.FullName</strong>?
+                                    Är du säker på att du vill ta bort <strong>@c.FullName</strong>?
                                 </div>
                                 <div class="modal-footer">
-                                    <form asp-action="DeleteCustomer" asp-route-id="@customer.Id" method="post">
+                                    <form asp-controller="Admin" asp-action="DeleteCustomerConfirmed" asp-route-id="@c.Id" method="post">
+                                        @Html.AntiForgeryToken()
                                         <button type="submit" class="btn btn-danger">Ja, ta bort</button>
                                     </form>
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
@@ -55,11 +56,13 @@
                             </div>
                         </div>
                     </div>
+
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
 <div class="d-flex justify-content-end" style="margin-right:13vw; margin-bottom:5px;">
-    <a asp-action="Dashboard" class="btn btn-secondary">Tillbaka till dashboard</a>
+    <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-secondary">Tillbaka till dashboard</a>
 </div>

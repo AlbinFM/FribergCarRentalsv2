@@ -1,55 +1,61 @@
-﻿@model FribergCarRentalsAPI.Models.Car
-
+﻿@model FribergCarRentalsMVC.DTOs.CarDto
 @{
-    ViewData["Title"] = "Skapa annons";
+    ViewData["Title"] = "Redigera bil";
 }
 
-<h1 class="mb-4">Skapa annons</h1>
-
+<h1>Redigera</h1>
+<hr />
 <div class="row">
     <div class="col-md-6">
-        <form asp-action="CreateCar" method="post">
+        <form asp-controller="Admin" asp-action="EditCar" method="post">
+            @Html.AntiForgeryToken()
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <input type="hidden" asp-for="Id" />
+
             <div class="form-group">
                 <label asp-for="Brand" class="control-label">Märke:</label>
                 <input asp-for="Brand" class="form-control" />
                 <span asp-validation-for="Brand" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="Model" class="control-label">Modell:</label>
                 <input asp-for="Model" class="form-control" />
                 <span asp-validation-for="Model" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="Year" class="control-label">Årsmodell:</label>
                 <input asp-for="Year" class="form-control" />
                 <span asp-validation-for="Year" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="Color" class="control-label">Färg:</label>
                 <input asp-for="Color" class="form-control" />
                 <span asp-validation-for="Color" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="PriceRate" class="control-label">Kostnad per dag:</label>
                 <input asp-for="PriceRate" class="form-control" />
                 <span asp-validation-for="PriceRate" class="text-danger"></span>
             </div>
+            
+
             <div class="form-group">
-                <label asp-for="ImageUrls" class="control-label">Bild URL:</label>
-                <input asp-for="ImageUrls" class="form-control" placeholder="Ange bild-URLs separerade med kommatecken" />
-                <span asp-validation-for="ImageUrls" class="text-danger"></span>
+                <label class="control-label">Bild-URL(s)</label>
+                <input name="imageUrlsString"
+                       class="form-control"
+                       value="@string.Join(",", Model.ImageUrls)"
+                       placeholder="URL1, URL2, URL3" />
             </div>
+
             <div class="d-flex gap-2 mt-4">
-                <button type="submit" class="btn btn-primary w-50">Skapa annons</button>
-                <a asp-action="Dashboard" class="btn btn-secondary w-50">Tillbaka till menyn</a>
+                <button type="submit" class="btn btn-primary w-50">Spara</button>
+                <a asp-controller="Admin" asp-action="ShowCars" class="btn btn-secondary w-50">Tillbaka</a>
             </div>
         </form>
     </div>
 </div>
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-}

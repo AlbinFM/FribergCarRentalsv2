@@ -1,0 +1,40 @@
+﻿@model FribergCarRentalsMVC.DTOs.CustomersAllDto.CustomerRegisterDto
+@{
+    ViewData["Title"] = "Registrera dig";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <h2 class="mb-4">Registrera dig</h2>
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <form asp-controller="Customer" asp-action="Register" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group mb-3">
+                <label asp-for="FullName" class="form-label">För- och efternamn</label>
+                <input asp-for="FullName" class="form-control" placeholder="Ange ditt fullständiga namn" />
+                <span asp-validation-for="FullName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Email" class="form-label">E-post</label>
+                <input asp-for="Email" class="form-control" placeholder="Ange din e-post" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-4">
+                <label asp-for="Password" class="form-label">Lösenord</label>
+                <input asp-for="Password" type="password" class="form-control" placeholder="Ange ditt lösenord" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Registrera</button>
+        </form>
+
+        <div class="mt-3 text-center">
+            <a asp-controller="Customer" asp-action="Login">Har du redan ett konto? Logga in här</a>
+        </div>
+    </div>
+</div>

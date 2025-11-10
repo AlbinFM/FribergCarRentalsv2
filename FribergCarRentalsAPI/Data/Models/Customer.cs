@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace FribergCarRentalsAPI.Models
+namespace FribergCarRentalsAPI.Data.Models
 {
     public class Customer
     {
@@ -12,8 +12,10 @@ namespace FribergCarRentalsAPI.Models
         [Required, EmailAddress]
         public string Email { get; set; } = string.Empty; // E-postadress för kunden
 
-        [Required]
-        public string Password { get; set; } = string.Empty; // Lösenord för kunden
+        //Koppling till identity
+        public string ApiUserId { get; set; } = string.Empty;
+
+        public ApiUser ApiUser { get; set; } = null!;
 
         public ICollection<Booking> Bookings { get; set; } // Lista med bokningar som kunden har gjort
 

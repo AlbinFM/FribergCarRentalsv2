@@ -1,19 +1,15 @@
-﻿@model FribergCarRentalsAPI.Models.Car
-
+﻿@model FribergCarRentalsMVC.DTOs.CarDto
 @{
-    // Sätter sidans titel
     ViewData["Title"] = "Radera annons";
 }
 
 <h1 class="mb-4">Radera annons</h1>
-<hr />
 <div class="row">
     <div class="col-md-6">
-        <!-- Varningsruta för att bekräfta borttagning -->
         <div class="alert alert-warning mb-4">
             <strong>Är du säker på att du vill ta bort denna annons?</strong>
         </div>
-        <!-- Visar bilens detaljer -->
+
         <dl class="row">
             <dt class="col-sm-4">Märke:</dt>
             <dd class="col-sm-8">@Model.Brand</dd>
@@ -24,22 +20,15 @@
             <dt class="col-sm-4">Färg:</dt>
             <dd class="col-sm-8">@Model.Color</dd>
             <dt class="col-sm-4">Kostnad per dag:</dt>
-            <dd class="col-sm-8">@Model.PriceRate.ToString("C")</dd>
-            <dt class="col-sm-4">Bilder:</dt>
-            <dd class="col-sm-8">
-                @foreach (var url in Model.ImageUrls)
-                {
-                    <img src="@url" alt="Bild på bil" style="width:200px; height:auto; margin:5px;" />
-                }
-            </dd>
+            <dd class="col-sm-8">@Model.PriceRate</dd>
         </dl>
-        <!-- Formulär för att bekräfta borttagning -->
-        <form asp-action="DeleteCarConfirmed" method="post">
+
+        <form asp-controller="Admin" asp-action="DeleteCarConfirmed" method="post">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="Id" />
             <div class="d-flex gap-2 mt-4">
-                <button type="submit" class="btn btn-danger w-50">Radera annons</button>
-                <a asp-action="Dashboard" class="btn btn-secondary w-50">Tillbaka till menyn</a>
+                <button type="submit" class="btn btn-danger w-50">Radera</button>
+                <a asp-controller="Admin" asp-action="ShowCars" class="btn btn-secondary w-50">Tillbaka</a>
             </div>
         </form>
     </div>

@@ -82,10 +82,10 @@
                         @if (Context.Session.GetInt32("AdminId") == null && Context.Session.GetInt32("CustomerId") == null)
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Customer" asp-action="CustomerLogin">Logga in</a>
+                                <a class="nav-link text-dark" asp-controller="Customer" asp-action="Login">Logga in</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Admin" asp-action="AdminLogin">Logga in som admin</a>
+                                <a class="nav-link text-dark" asp-controller="AdminAuth" asp-action="AdminLogin">Logga in som admin</a>
                             </li>
                         }
                         else if (Context.Session.GetInt32("AdminId") != null)
@@ -94,13 +94,13 @@
                                 <a class="nav-link text-dark" asp-controller="Admin" asp-action="Dashboard">Dashboard</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Admin" asp-action="Logout">Logga ut</a>
+                                <a class="nav-link text-dark" asp-controller="AdminAuth" asp-action="AdminLogout">Logga ut</a>
                             </li>
                         }
                         else
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Customer" asp-action="MyBookings">Mina bokningar</a>
+                                <a class="nav-link text-dark" asp-controller="Booking" asp-action="MyBookings">Mina bokningar</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Customer" asp-action="Logout">Logga ut</a>
@@ -123,6 +123,6 @@
         </div>
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+    @await RenderSectionAsync("Scripts", required: false) 
 </body>
 </html>

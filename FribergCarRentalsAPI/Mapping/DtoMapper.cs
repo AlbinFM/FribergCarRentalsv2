@@ -1,22 +1,31 @@
-﻿using FribergCarRentalsAPI.DTOs;
-using FribergCarRentalsAPI.Models;
+﻿using FribergCarRentalsAPI.Data.Models;
+using FribergCarRentalsAPI.DTOs;
 
 namespace FribergCarRentalsAPI.Mapping
 {
     public static class DtoMapper
     {
-        public static CarDto MapToCarDto(Car car)
+        public static CarDto MapToCarDto(Car car) => new CarDto
         {
-            return new CarDto
-            {
-                Id = car.Id,
-                Brand = car.Brand,
-                Model = car.Model,
-                Year = car.Year,
-                Color = car.Color,
-                PriceRate = car.PriceRate,
-                ImageUrls = car.ImageUrls
-            };
+            Id = car.Id,
+            Brand = car.Brand,
+            Model = car.Model,
+            Year = car.Year,
+            Color = car.Color,
+            PriceRate = car.PriceRate,
+            ImageUrls = (car.ImageUrlsCsv ?? "")
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToList()
+        };
+
+        public static void MapToCarEntity(CarDto dto, Car car)
+        {
+            car.Brand = dto.Brand;
+            car.Model = dto.Model;
+            car.Year  = dto.Year;
+            car.Color = dto.Color;
+            car.PriceRate = dto.PriceRate;
+            car.ImageUrlsCsv = string.Join(",", dto.ImageUrls ?? new List<string>());
         }
 
         public static BookingDto MapToBookingDto(Booking booking)
@@ -32,22 +41,13 @@ namespace FribergCarRentalsAPI.Mapping
             };
         }
 
-        public static CustomerDto MapToCustomerDto(Customer customer)
+        public static CustomerDto MapToCustomerDto(Customer customerDto)
         {
             return new CustomerDto
             {
-                Id = customer.Id,
-                FullName = customer.FullName,
-                Email = customer.Email
-            };
-        }
-
-        public static AdminDto MapToAdminDto(Admin admin)
-        {
-            return new AdminDto
-            {
-                Id = admin.Id,
-                Email = admin.Email
+                Id = customerDto.Id,
+                FullName = customerDto.FullName,
+                Email = customerDto.Email
             };
         }
     }

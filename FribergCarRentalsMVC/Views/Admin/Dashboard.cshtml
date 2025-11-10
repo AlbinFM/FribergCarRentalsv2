@@ -5,17 +5,6 @@
 <div class="container mt-5">
     <h2 class="mb-4 text-center">Admin Dashboard</h2>
 
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h5 class="card-title">Översikt</h5>
-                    <p class="card-text">Välkommen till adminpanelen. Här kan du hantera bilar, kunder och bokningar.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="row g-4 justify-content-center">
         <div class="col-md-4">
             <div class="card shadow-sm h-100">
@@ -24,7 +13,7 @@
                     <p class="card-text flex-grow-1">Lägg till, redigera eller ta bort bilar i systemet.</p>
                     <div class="mt-3 d-flex justify-content-center gap-2 flex-wrap">
                         <a asp-controller="Admin" asp-action="CreateCar" class="btn btn-primary">Lägg till</a>
-                        <a asp-controller="Cars" asp-action="Index" class="btn btn-primary">Redigera eller ta bort</a>
+                        <a asp-controller="Admin" asp-action="ShowCars" class="btn btn-primary">Lista/Redigera</a>
                     </div>
                 </div>
             </div>
@@ -44,7 +33,7 @@
             <div class="card shadow-sm h-100">
                 <div class="card-body text-center d-flex flex-column">
                     <h5 class="card-title mb-3">Hantera bokningar</h5>
-                    <p class="card-text flex-grow-1">Visa och hantera bokningar från kunder.</p>
+                    <p class="card-text flex-grow-1">Visa och hantera bokningar.</p>
                     <a asp-controller="Admin" asp-action="ShowBookings" class="btn btn-primary mt-3">Gå till bokningar</a>
                 </div>
             </div>

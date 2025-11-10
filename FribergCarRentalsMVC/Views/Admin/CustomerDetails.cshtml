@@ -1,0 +1,10 @@
+﻿@model FribergCarRentalsMVC.DTOs.CustomersAllDto.CustomerDto
+@{
+    ViewData["Title"] = "Kunddetaljer";
+}
+
+<h1>Kunddetaljer</h1>
+<p><strong>Namn:</strong> @Model.FullName</p>
+<p><strong>E-post:</strong> @Model.Email</p>
+
+<a asp-controller="Admin" asp-action="ShowCustomers" class="btn btn-secondary">Tillbaka till kunder</a>

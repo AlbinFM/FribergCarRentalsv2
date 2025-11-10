@@ -1,78 +1,93 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FribergCarRentalsMVC.DTOs;
+using FribergCarRentalsMVC.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FribergCarRentalsMVC.Controllers
 {
     public class CustomerController : Controller
     {
-                private readonly AppDbContext _context;
+        private readonly IAuthService _auth;
 
-        public CustomerController(AppDbContext context)
-        {
-            _context = context;
-        }
+        public CustomerController(IAuthService auth) => _auth = auth;
 
-        // Visa registreringsformulär
-        public IActionResult CustomerRegister()
-        {
-            return View();
-        }
+        // GET: /Customer/Register
+        [HttpGet]
+        public IActionResult Register() => View(new CustomersAllDto.CustomerRegisterDto());
 
-        // Skapa kund (POST)
+        // POST: /Customer/Register
         [HttpPost]
-        public async Task<IActionResult> CustomerRegister(Customer customer)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(CustomersAllDto.CustomerRegisterDto dto)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid) return View(dto);
+
+            try
             {
-                _context.Customers.Add(customer);
-                await _context.SaveChangesAsync();
-                return RedirectToAction("CustomerLogin");
+                // Försök registrera och logga in direkt
+                var ok = await _auth.RegisterAndLogin(dto);
+                if (!ok)
+                {
+                    TempData["AlertMessage"] = "Konto skapat, men autoinloggning misslyckades. Logga in nedan.";
+                    TempData["AlertType"] = "warning";
+                    return RedirectToAction(nameof(Login));
+                }
+
+                TempData["AlertMessage"] = "Välkommen! Du är nu inloggad.";
+                TempData["AlertType"] = "success";
+                return RedirectToAction("Index", "Home");
             }
-            return View(customer);
+            catch (InvalidOperationException ex) when (ex.Message.Contains("already in use", StringComparison.OrdinalIgnoreCase))
+            {
+                ModelState.AddModelError(nameof(dto.Email), "E-postadressen används redan.");
+                return View(dto);
+            }
+            catch (HttpRequestException ex)
+            {
+                ModelState.AddModelError(string.Empty, $"Registrering misslyckades: {ex.Message}");
+                return View(dto);
+            }
         }
 
-        // Visa inloggningsformulär
-        public IActionResult CustomerLogin()
-        {
-            return View();
-        }
+        // GET: /Customer/Login
+        [HttpGet]
+        public IActionResult Login() => View(new CustomersAllDto.LoginDto());
 
-        // Hantera inloggning (POST)
+        // POST: /Customer/Login
         [HttpPost]
-        public async Task<IActionResult> CustomerLogin(string email, string password)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(CustomersAllDto.LoginDto dto)
         {
-            var customer = await _context.Customers
-                .FirstOrDefaultAsync(c => c.Email == email && c.Password == password);
+            if (!ModelState.IsValid) return View(dto);
 
-            if (customer == null)
+            try
             {
-                ViewBag.Error = "Fel e-post eller lösenord";
-                return View();
+                var ok = await _auth.Login(dto, fetchProfile: true);
+                if (!ok)
+                {
+                    ModelState.AddModelError("", "Fel e-post eller lösenord.");
+                    return View(dto);
+                }
+
+                TempData["AlertMessage"] = "Inloggad!";
+                TempData["AlertType"] = "success";
+                return RedirectToAction("Index", "Home");
             }
-
-            HttpContext.Session.SetInt32("CustomerId", customer.Id);
-            return RedirectToAction("MyBookings");
+            catch (HttpRequestException ex)
+            {
+                ModelState.AddModelError(string.Empty, $"Inloggning misslyckades: {ex.Message}");
+                return View(dto);
+            }
         }
 
-        // Logga ut kund
-        public IActionResult Logout()
+        // POST: /Customer/Logout
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
         {
-            HttpContext.Session.Remove("CustomerId");
-            return RedirectToAction("CustomerLogin");
-        }
-
-        // Visa alla bokningar för inloggad kund
-        public async Task<IActionResult> MyBookingsAsync()
-        {
-            var customerId = HttpContext.Session.GetInt32("CustomerId");
-            if (customerId == null)
-                return RedirectToAction("CustomerLogin");
-
-            var bookings = await _context.Bookings
-                .Include(b => b.Car)
-                .Where(b => b.CustomerId == customerId)
-                .ToListAsync();
-
-            return View(bookings);
+            await _auth.Logout();
+            TempData["AlertMessage"] = "Du har loggats ut.";
+            TempData["AlertType"] = "info";
+            return RedirectToAction(nameof(Index), "Home");
         }
     }
 }

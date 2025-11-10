@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace FribergCarRentalsAPI.Models
+namespace FribergCarRentalsAPI.Data.Models
 {
     public class Booking
     {

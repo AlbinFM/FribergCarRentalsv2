@@ -1,221 +1,229 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FribergCarRentalsMVC.ApiClients.Interfaces;
+using FribergCarRentalsMVC.DTOs;
+using FribergCarRentalsMVC.Filters;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FribergCarRentalsMVC.Controllers
 {
+    [AdminOnly]
     public class AdminController : Controller
     {
-                private readonly AppDbContext _context;
+        private readonly IAdminApiClient _api;
+        public AdminController(IAdminApiClient api) => _api = api;
 
-        public AdminController(AppDbContext context)
-        {
-            _context = context;
-        }
-
-        // Visa inloggningsformulär för admin
+        // ===== Dashboard/Index =====
         [HttpGet]
-        public IActionResult Index() => RedirectToAction("AdminLogin");
+        public IActionResult Dashboard() => View();
 
         [HttpGet]
-        public IActionResult AdminLogin() => View();
+        public IActionResult Index() => RedirectToAction(nameof(Dashboard));
 
-        // Hantera inloggning för admin
-        [HttpPost]
-        public async Task<IActionResult> LoginAsync(string email, string password)
+        // ===== Cars =====
+        [HttpGet]
+        public async Task<IActionResult> ShowCars()
         {
-            var admin = await _context.Admins.FirstOrDefaultAsync(a => a.Email == email && a.Password == password);
-            if (admin == null)
+            try
             {
-                ViewBag.LoginFailed = true;
-                return View("AdminLogin");
+                var cars = await _api.GetCars();
+                return View(cars);
             }
-            HttpContext.Session.SetInt32("AdminId", admin.Id);
-            return RedirectToAction("Dashboard");
-        }
-
-        // Logga ut admin
-        public IActionResult Logout()
-        {
-            HttpContext.Session.Remove("AdminId");
-            return RedirectToAction("AdminLogin");
-        }
-
-        // Visa admin-dashboard
-        public IActionResult Dashboard()
-        {
-            if (HttpContext.Session.GetInt32("AdminId") == null)
-                return RedirectToAction("AdminLogin");
-            return View();
-        }
-
-        // Visa alla bilar
-        public async Task<IActionResult> ShowCarsAsync()
-        {
-            if (HttpContext.Session.GetInt32("AdminId") == null)
-                return RedirectToAction("AdminLogin");
-
-            var cars = await _context.Cars.ToListAsync();
-            return View(cars);
-        }
-
-        // Visa formulär för att skapa bil
-        public IActionResult CreateCarAsync()
-        {
-            if (HttpContext.Session.GetInt32("AdminId") == null)
-                return RedirectToAction("AdminLogin");
-            return View();
-        }
-
-        // Skapa bil (POST)
-        [HttpPost]
-        public async Task<IActionResult> CreateCarAsync(Car car)
-        {
-            if (ModelState.IsValid)
+            catch (UnauthorizedAccessException)
             {
-                _context.Cars.Add(car);
-                await _context.SaveChangesAsync();
+                TempData["AlertMessage"] = "Din session har gått ut. Logga in igen.";
+                TempData["AlertType"] = "warning";
+                return RedirectToAction("AdminLogin", "AdminAuth");
+            }
+        }
+
+        [HttpGet]
+        public IActionResult CreateCar() => View(new CarDto());
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateCar(CarDto dto, string? imageUrlsString)
+        {
+            if (!ModelState.IsValid) return View(dto);
+            
+            if (!string.IsNullOrWhiteSpace(imageUrlsString))
+                dto.ImageUrls = imageUrlsString
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .ToList();
+            else
+                dto.ImageUrls = new List<string>();
+
+            try
+            {
+                await _api.CreateCar(dto);
                 TempData["AlertMessage"] = "Annons skapad!";
                 TempData["AlertType"] = "success";
-                return RedirectToAction("Index", "Cars");
+                return RedirectToAction(nameof(ShowCars));
             }
-            return View(car);
-        }
-
-        // Redigera bil (GET)
-        public async Task<IActionResult> EditCarAsync(int id)
-        {
-            if (HttpContext.Session.GetInt32("AdminId") == null)
-                return RedirectToAction("AdminLogin");
-
-            var car = await _context.Cars.FindAsync(id);
-            if (car == null)
-                return NotFound();
-            return View(car);
-        }
-
-        // Redigera bil (POST)
-        [HttpPost]
-        public async Task<IActionResult> EditCarAsync(Car car, string imageUrlsString)
-        {
-            if (ModelState.IsValid)
+            catch (HttpRequestException ex)
             {
-                car.ImageUrls = imageUrlsString?
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) //Efter man redigerade en bil så pekade annonsen på listan med bilder istälet för URL:n, så hittade denna kod på nätet som konverterar URL:n till en lista innan den sparas.
-                    .ToList() ?? new List<string>();
+                ModelState.AddModelError(string.Empty, $"Kunde inte skapa bil: {ex.Message}");
+                return View(dto);
+            }
+        }
 
-                _context.Cars.Update(car);
-                await _context.SaveChangesAsync();
+        [HttpGet]
+        public async Task<IActionResult> EditCar(int id)
+        {
+            try
+            {
+                var car = await _api.GetCarId(id);
+                if (car is null) return NotFound();
+                return View(car);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                TempData["AlertMessage"] = "Din session har gått ut. Logga in igen.";
+                TempData["AlertType"] = "warning";
+                return RedirectToAction("AdminLogin", "AdminAuth");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditCar(CarDto dto, string? imageUrlsString)
+        {
+            if (!ModelState.IsValid) return View(dto);
+
+            try
+            {
+                await _api.UpdateCar(dto.Id, dto, imageUrlsString);
+
                 TempData["AlertMessage"] = "Annons uppdaterad!";
                 TempData["AlertType"] = "warning";
-                return RedirectToAction("Index", "Cars");
+                return RedirectToAction(nameof(ShowCars));
             }
-            return View(car);
+            catch (HttpRequestException ex)
+            {
+                ModelState.AddModelError(string.Empty, $"Kunde inte uppdatera bil: {ex.Message}");
+                return View(dto);
+            }
         }
 
-        // Ta bort bil (GET)
-        public async Task<IActionResult> DeleteCarAsync(int id)
+        [HttpGet]
+        public async Task<IActionResult> DeleteCar(int id)
         {
-            if (HttpContext.Session.GetInt32("AdminId") == null)
-                return RedirectToAction("AdminLogin");
-
-            var car = await _context.Cars.FindAsync(id);
-            if (car == null)
-                return NotFound();
-            return View(car);
+            try
+            {
+                var car = await _api.GetCarId(id);
+                if (car is null) return NotFound();
+                return View(car);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                TempData["AlertMessage"] = "Din session har gått ut. Logga in igen.";
+                TempData["AlertType"] = "warning";
+                return RedirectToAction("AdminLogin", "AdminAuth");
+            }
         }
 
-        // Ta bort bil (POST)
         [HttpPost]
-        public async Task<IActionResult> DeleteCarConfirmedAsync(int id)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteCarConfirmed(int id)
         {
-            var car = await _context.Cars.FindAsync(id);
-            if (car != null)
+            try
             {
-                _context.Cars.Remove(car);
-                await _context.SaveChangesAsync();
-                TempData["AlertMessage"] = "Annons borttagen!";
-                TempData["AlertType"] = "danger";
+                var ok = await _api.DeleteCar(id);
+                TempData["AlertMessage"] = ok ? "Annons borttagen!" : "Kunde inte ta bort.";
+                TempData["AlertType"] = ok ? "danger" : "secondary";
+                return RedirectToAction(nameof(ShowCars));
             }
-            return RedirectToAction("Index", "Cars");
+            catch (UnauthorizedAccessException)
+            {
+                TempData["AlertMessage"] = "Din session har gått ut. Logga in igen.";
+                TempData["AlertType"] = "warning";
+                return RedirectToAction("AdminLogin", "AdminAuth");
+            }
         }
 
-        // Visa alla kunder
-        public async Task<IActionResult> ShowCustomersAsync()
-        {
-            if (HttpContext.Session.GetInt32("AdminId") == null)
-                return RedirectToAction("AdminLogin");
-
-            var customers = await _context.Customers.ToListAsync();
-            return View(customers);
-        }
-
-        // Visa detaljer för en kund
+        // ===== Customers =====
         [HttpGet]
-        public async Task<IActionResult> CustomerDetailsAsync(int id)
+        public async Task<IActionResult> ShowCustomers()
         {
-            if (HttpContext.Session.GetInt32("AdminId") == null)
-                return RedirectToAction("AdminLogin");
-
-            var customer = await _context.Customers
-                .Include(c => c.Bookings)
-                .ThenInclude(b => b.Car)
-                .FirstOrDefaultAsync(c => c.Id == id);
-
-            if (customer == null)
-                return NotFound();
-
-            return View(customer);
+            try
+            {
+                var customers = await _api.GetCustomers();
+                return View(customers);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                TempData["AlertMessage"] = "Din session har gått ut. Logga in igen.";
+                TempData["AlertType"] = "warning";
+                return RedirectToAction("AdminLogin", "AdminAuth");
+            }
         }
 
-        // Visa bekräftelse för att ta bort kund (GET)
         [HttpGet]
-        public async Task<IActionResult> DeleteCustomerAsync(int id)
+        public async Task<IActionResult> CustomerDetails(int id)
         {
-            if (HttpContext.Session.GetInt32("AdminId") == null)
-                return RedirectToAction("AdminLogin");
-
-            var customer = await _context.Customers
-                .Include(c => c.Bookings)
-                .FirstOrDefaultAsync(c => c.Id == id);
-
-            if (customer == null)
-                return NotFound();
-
-            return View(customer);
+            try
+            {
+                var c = await _api.GetCustomer(id);
+                if (c is null) return NotFound();
+                return View(c);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                TempData["AlertMessage"] = "Din session har gått ut. Logga in igen.";
+                TempData["AlertType"] = "warning";
+                return RedirectToAction("AdminLogin", "AdminAuth");
+            }
         }
 
-        // Ta bort kund (POST)
+        [HttpGet]
+        public async Task<IActionResult> DeleteCustomer(int id)
+        {
+            try
+            {
+                var c = await _api.GetCustomerForDelete(id);
+                if (c is null) return NotFound();
+                return View(c);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                TempData["AlertMessage"] = "Din session har gått ut. Logga in igen.";
+                TempData["AlertType"] = "warning";
+                return RedirectToAction("AdminLogin", "AdminAuth");
+            }
+        }
+
         [HttpPost, ActionName("DeleteCustomer")]
-        public async Task<IActionResult> DeleteCustomerConfirmedAsync(int id)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteCustomerConfirmed(int id)
         {
-            var customer = await _context.Customers
-                .Include(c => c.Bookings)
-                .FirstOrDefaultAsync(c => c.Id == id);
-
-            if (customer != null)
+            try
             {
-                if (customer.Bookings != null && customer.Bookings.Any())
-                {
-                    _context.Bookings.RemoveRange(customer.Bookings);
-                }
-                _context.Customers.Remove(customer);
-                await _context.SaveChangesAsync();
-                TempData["AlertMessage"] = "Kund borttagen!";
-                TempData["AlertType"] = "danger";
+                var ok = await _api.DeleteCustomer(id);
+                TempData["AlertMessage"] = ok ? "Kund borttagen!" : "Kunde inte ta bort kund.";
+                TempData["AlertType"] = ok ? "danger" : "secondary";
+                return RedirectToAction(nameof(ShowCustomers));
             }
-            return RedirectToAction("ShowCustomers");
+            catch (UnauthorizedAccessException)
+            {
+                TempData["AlertMessage"] = "Din session har gått ut. Logga in igen.";
+                TempData["AlertType"] = "warning";
+                return RedirectToAction("AdminLogin", "AdminAuth");
+            }
         }
 
-        // Visa alla bokningar
-        public async Task<IActionResult> ShowBookingsAsync()
+        // ===== Bookings =====
+        [HttpGet]
+        public async Task<IActionResult> ShowBookings()
         {
-            if (HttpContext.Session.GetInt32("AdminId") == null)
-                return RedirectToAction("AdminLogin");
-
-            var bookings = await _context.Bookings
-                .Include(b => b.Car)
-                .Include(b => b.Customer)
-                .ToListAsync();
-            return View(bookings);
+            try
+            {
+                var list = await _api.GetBookings();
+                return View(list);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                TempData["AlertMessage"] = "Din session har gått ut. Logga in igen.";
+                TempData["AlertType"] = "warning";
+                return RedirectToAction("AdminLogin", "AdminAuth");
+            }
         }
     }
 }

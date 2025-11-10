@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace FribergCarRentalsAPI.Models
+namespace FribergCarRentalsAPI.Data.Models
 {
     public class Admin
     {
@@ -9,7 +9,8 @@ namespace FribergCarRentalsAPI.Models
         [Required, EmailAddress]
         public required string Email { get; set; } // E-postadress för admin
 
-        [Required]
-        public required string Password { get; set; } // Lösenord för admin
+        public string ApiUserId { get; set; }
+       
+        public ApiUser ApiUser { get; set; }
     }
 }

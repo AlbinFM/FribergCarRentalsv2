@@ -1,0 +1,63 @@
+﻿@model IEnumerable<FribergCarRentalsMVC.DTOs.BookingsAllDto.BookingDto>
+
+@{
+    ViewData["Title"] = "Mina bokningar";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Mina bokningar</h2>
+
+    @if (TempData["Success"] is string msg)
+    {
+        <div class="alert alert-success">@msg</div>
+    }
+
+    @if (!(Model?.Any() ?? false))
+    {
+        <div class="alert alert-info">Du har inga bokningar ännu.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>CarId</th>
+                        <th>Startdatum</th>
+                        <th>Slutdatum</th>
+                        <th>Bekräftad</th>
+                        <th>Åtgärder</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var b in Model)
+                {
+                    <tr>
+                        <td>@b.CarId</td>
+                        <td>@b.StartDate.ToShortDateString()</td>
+                        <td>@b.EndDate.ToShortDateString()</td>
+                        <td>@(b.IsConfirmed ? "Ja" : "Nej")</td>
+                        <td>
+                            @if (b.StartDate > DateTime.Now)
+                            {
+                                <form asp-controller="Booking"
+                                      asp-action="DeleteBooking"
+                                      asp-route-id="@b.Id"
+                                      method="post"
+                                      onsubmit="return confirm('Är du säker på att du vill avboka?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-danger btn-sm">Avboka</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Kan inte avbokas</span>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
