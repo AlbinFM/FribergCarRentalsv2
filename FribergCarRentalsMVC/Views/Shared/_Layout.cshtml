@@ -58,71 +58,90 @@
     </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-light border-bottom shadow-sm mb-3">
-            <div class="container">
-                <a class="navbar-brand d-flex align-items-center" asp-controller="Home" asp-action="Index">
-                    <img src="~/images/FribergCarRentals.png" alt="Friberg Car Rentals Logo" style="height:40px; margin-right:10px;" />
-                    Friberg Car Rentals
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
-                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Hem</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Cars" asp-action="Index">Tillgängliga bilar</a>
-                        </li>
-                    </ul>
-                    <ul class="navbar-nav">
-                        @if (Context.Session.GetInt32("AdminId") == null && Context.Session.GetInt32("CustomerId") == null)
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Customer" asp-action="Login">Logga in</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="AdminAuth" asp-action="AdminLogin">Logga in som admin</a>
-                            </li>
-                        }
-                        else if (Context.Session.GetInt32("AdminId") != null)
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Admin" asp-action="Dashboard">Dashboard</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="AdminAuth" asp-action="AdminLogout">Logga ut</a>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Booking" asp-action="MyBookings">Mina bokningar</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Customer" asp-action="Logout">Logga ut</a>
-                            </li>
-                        }
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="border-top footer text-muted mt-4">
+@{
+    var rolesCsv   = Context.Session.GetString("Roles") ?? "";
+    var isAdmin    = rolesCsv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                             .Any(r => r.Equals("Admin", StringComparison.OrdinalIgnoreCase));
+    var customerId = Context.Session.GetInt32("CustomerId");
+    var isLoggedIn = isAdmin || customerId != null;
+}
+<header>
+    <nav class="navbar navbar-expand-lg navbar-light border-bottom shadow-sm mb-3">
         <div class="container">
-            &copy; @DateTime.Now.Year - Friberg Car Rentals - <a asp-controller="Home" asp-action="Privacy" class="text-dark">Privacy</a>
+            <a class="navbar-brand d-flex align-items-center" asp-controller="Home" asp-action="Index">
+                <img src="~/images/FribergCarRentals.png" alt="Friberg Car Rentals Logo" style="height:40px; margin-right:10px;" />
+                Friberg Car Rentals
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                    aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div id="mainNav" class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <ul class="navbar-nav flex-grow-1">
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Hem</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-dark" asp-controller="Cars" asp-action="Index">Tillgängliga bilar</a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    @if (!isLoggedIn)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Auth" asp-action="Login">Logga in</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="AdminAuth" asp-action="AdminLogin">Logga in som admin</a>
+                        </li>
+                    }
+                    else if (isAdmin)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Admin" asp-action="Dashboard">Dashboard</a>
+                        </li>
+                        <li class="nav-item">
+                            <form asp-controller="AdminAuth" asp-action="AdminLogout" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button class="btn btn-link nav-link text-dark" type="submit">Logga ut</button>
+                            </form>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Booking" asp-action="MyBookings">Mina bokningar</a>
+                        </li>
+                        <li class="nav-item">
+                            <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button class="btn btn-link nav-link text-dark" type="submit">Logga ut</button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            </div>
         </div>
-    </footer>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    @await RenderSectionAsync("Scripts", required: false) 
+    </nav>
+</header>
+
+<div class="container">
+    <main role="main" class="pb-3">
+        @RenderBody()
+    </main>
+</div>
+
+<footer class="border-top footer text-muted mt-4">
+    <div class="container">
+        &copy; @DateTime.Now.Year - Friberg Car Rentals -
+        <a asp-controller="Home" asp-action="Privacy" class="text-dark">Privacy</a>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@RenderSection("Scripts", required: false)
 </body>
 </html>

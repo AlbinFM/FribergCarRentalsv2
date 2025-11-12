@@ -4,17 +4,16 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FribergCarRentalsMVC.Controllers
 {
-    public class CustomerController : Controller
+    public class AuthController : Controller
     {
         private readonly IAuthService _auth;
+        public AuthController(IAuthService auth) => _auth = auth;
 
-        public CustomerController(IAuthService auth) => _auth = auth;
-
-        // GET: /Customer/Register
+        // GET: /Auth/Register
         [HttpGet]
         public IActionResult Register() => View(new CustomersAllDto.CustomerRegisterDto());
 
-        // POST: /Customer/Register
+        // POST: /Auth/Register
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(CustomersAllDto.CustomerRegisterDto dto)
@@ -23,8 +22,7 @@ namespace FribergCarRentalsMVC.Controllers
 
             try
             {
-                // Försök registrera och logga in direkt
-                var ok = await _auth.RegisterAndLogin(dto);
+                var ok = await _auth.Register(dto);
                 if (!ok)
                 {
                     TempData["AlertMessage"] = "Konto skapat, men autoinloggning misslyckades. Logga in nedan.";
@@ -48,38 +46,30 @@ namespace FribergCarRentalsMVC.Controllers
             }
         }
 
-        // GET: /Customer/Login
+        // GET: /Auth/Login
         [HttpGet]
         public IActionResult Login() => View(new CustomersAllDto.LoginDto());
 
-        // POST: /Customer/Login
+        // POST: /Auth/Login
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(CustomersAllDto.LoginDto dto)
         {
             if (!ModelState.IsValid) return View(dto);
 
-            try
+            var ok = await _auth.Login(dto, fetchProfile: true);
+            if (!ok)
             {
-                var ok = await _auth.Login(dto, fetchProfile: true);
-                if (!ok)
-                {
-                    ModelState.AddModelError("", "Fel e-post eller lösenord.");
-                    return View(dto);
-                }
-
-                TempData["AlertMessage"] = "Inloggad!";
-                TempData["AlertType"] = "success";
-                return RedirectToAction("Index", "Home");
-            }
-            catch (HttpRequestException ex)
-            {
-                ModelState.AddModelError(string.Empty, $"Inloggning misslyckades: {ex.Message}");
+                ModelState.AddModelError("", "Fel e-post eller lösenord. Försök igen.");
                 return View(dto);
             }
+
+            TempData["AlertMessage"] = "Inloggad!";
+            TempData["AlertType"] = "success";
+            return RedirectToAction("Index", "Home");
         }
 
-        // POST: /Customer/Logout
+        // POST: /Auth/Logout
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
@@ -87,7 +77,7 @@ namespace FribergCarRentalsMVC.Controllers
             await _auth.Logout();
             TempData["AlertMessage"] = "Du har loggats ut.";
             TempData["AlertType"] = "info";
-            return RedirectToAction(nameof(Index), "Home");
+            return RedirectToAction("Index", "Home");
         }
     }
 }

@@ -1,6 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+﻿using System.Security.Claims;
 using FribergCarRentalsAPI.Constants;
 using FribergCarRentalsAPI.Data;
 using FribergCarRentalsAPI.Data.Models;
@@ -20,60 +18,44 @@ namespace FribergCarRentalsAPI.Controllers
         private readonly AppDbContext _context;
         private readonly UserManager<ApiUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly IConfiguration _config;
 
         public CustomerController(
             AppDbContext context,
             UserManager<ApiUser> userManager,
-            IConfiguration config,
             RoleManager<IdentityRole> roleManager)
         {
             _context = context;
             _userManager = userManager;
-            _config = config;
             _roleManager = roleManager;
-        }
-
-
-        // GET: api/customer/register
-        [HttpGet("register")]
-        public IActionResult CustomerRegister()
-        {
-            return Ok();
         }
 
         // POST: api/customer/register
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<IActionResult> CustomerRegister([FromBody] CustomerDto dto)
+        public async Task<IActionResult> CustomerRegister([FromBody] CustomerRegisterDto dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            // Kolla om email används redan
             var existing = await _userManager.FindByEmailAsync(dto.Email);
             if (existing != null)
                 return Conflict(new { message = "Email används redan." });
 
-            // Skapa Identity user
             var apiUser = new ApiUser
             {
-                UserName = dto.Email,
-                Email = dto.Email,
+                UserName  = dto.Email,
+                Email     = dto.Email,
                 FirstName = dto.FullName.Split(' ').FirstOrDefault(),
                 LastName  = dto.FullName.Split(' ').Skip(1).FirstOrDefault() ?? ""
             };
 
-            var result = await _userManager.CreateAsync(apiUser, dto.Password);
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
+            var createResult = await _userManager.CreateAsync(apiUser, dto.Password);
+            if (!createResult.Succeeded)
+                return BadRequest(createResult.Errors);
 
-            // Se till att Customer-rollen finns
             if (!await _roleManager.RoleExistsAsync(ApiRoles.User))
                 await _roleManager.CreateAsync(new IdentityRole(ApiRoles.User));
-
             await _userManager.AddToRoleAsync(apiUser, ApiRoles.User);
 
-            // Skapa Customer-profil
             var customer = new Customer
             {
                 FullName  = dto.FullName,
@@ -84,52 +66,51 @@ namespace FribergCarRentalsAPI.Controllers
             _context.Customers.Add(customer);
             await _context.SaveChangesAsync();
 
-            return Ok(DtoMapper.MapToCustomerDto(customer));
+            var outDto = DtoMapper.MapToCustomerDto(customer);
+            return CreatedAtAction(nameof(GetProfile), new { }, outDto);
         }
-        
+
+        // POST: api/customer/logout 
         [HttpPost("logout")]
         [Authorize]
-        public IActionResult Logout()
-        {
-            return Ok();
-        }
-        
-        
+        public IActionResult Logout() => Ok();
+
+        // GET: api/customer/bookings
         [HttpGet("bookings")]
         [Authorize(Roles = ApiRoles.User)]
-        public async Task<IActionResult> MyBookingsAsync()
+        public async Task<IActionResult> MyBookings()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null) return Unauthorized();
-
-            var customer = await _context.Customers.FirstOrDefaultAsync(c => c.ApiUserId == userId);
-            if (customer == null) return NotFound();
+            var me = await GetCurrentCustomer();
+            if (me is null) return Unauthorized();
 
             var bookings = await _context.Bookings
                 .Include(b => b.Car)
-                .Where(b => b.CustomerId == customer.Id)
+                .Where(b => b.CustomerId == me.Id)
+                .AsNoTracking()
                 .ToListAsync();
 
             return Ok(bookings.Select(DtoMapper.MapToBookingDto).ToList());
         }
-        
-        // API: CustomerController
-        [Authorize]
+
+        // GET: api/customer/me
         [HttpGet("me")]
+        [Authorize]
         public async Task<IActionResult> GetProfile()
         {
-            var apiUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(apiUserId)) return Unauthorized();
+            var me = await GetCurrentCustomer(track: false);
+            if (me is null) return Unauthorized();
 
-            var customer = await _context.Customers
-                .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.ApiUserId == apiUserId);
-
-            if (customer is null) return NotFound();
-
-            var dto = DtoMapper.MapToCustomerDto(customer);
-            return Ok(dto);
+            return Ok(DtoMapper.MapToCustomerDto(me));
         }
         
+        private async Task<Customer?> GetCurrentCustomer(bool track = true)
+        {
+            var apiUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(apiUserId)) return null;
+
+            var query = _context.Customers.Where(c => c.ApiUserId == apiUserId);
+            if (!track) query = query.AsNoTracking();
+            return await query.FirstOrDefaultAsync();
+        }
     }
 }

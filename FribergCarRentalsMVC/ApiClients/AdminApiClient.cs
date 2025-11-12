@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.WebUtilities;
-using FribergCarRentalsMVC.ApiClients.Interfaces;
+﻿using FribergCarRentalsMVC.ApiClients.Interfaces;
 using FribergCarRentalsMVC.DTOs;
 
 namespace FribergCarRentalsMVC.ApiClients;
@@ -18,22 +17,16 @@ public class AdminApiClient : BaseApiClient, IAdminApiClient
     public Task<CarDto> CreateCar(CarDto dto, CancellationToken ct = default)
         => PostAsync<CarDto>("api/admin/cars", dto, ct)!;
 
-    public Task<CarDto> UpdateCar(int id, CarDto dto, string? imageUrlsCsv = null, CancellationToken ct = default)
-    {
-        var url = $"api/admin/cars/{id}";
-        if (!string.IsNullOrWhiteSpace(imageUrlsCsv))
-        {
-            url = QueryHelpers.AddQueryString(url, "imageUrlsString", imageUrlsCsv);
-        }
-        return PostAsync<CarDto>(url, dto, ct)!;
-    }
+    public Task<CarDto> UpdateCar(int id, CarDto dto, CancellationToken ct = default)
+        => PostAsync<CarDto>($"api/admin/cars/{id}", dto, ct)!;
+
 
     public async Task<bool> DeleteCar(int id, CancellationToken ct = default)
     {
-        // API använder POST /api/admin/cars/delete/{id}
-        await PostAsync<object>($"api/admin/cars/delete/{id}", null, ct);
+        await DeleteAsync($"api/admin/cars/{id}", ct);
         return true;
     }
+
 
     // Customers
     public Task<List<CustomersAllDto.CustomerDto>> GetCustomers(CancellationToken ct = default)
@@ -47,12 +40,23 @@ public class AdminApiClient : BaseApiClient, IAdminApiClient
 
     public async Task<bool> DeleteCustomer(int id, CancellationToken ct = default)
     {
-        // API använder POST /api/admin/customers/delete/{id}
-        await PostAsync<object>($"api/admin/customers/delete/{id}", null, ct);
+        await DeleteAsync($"api/admin/customers/{id}", ct);
         return true;
     }
 
     // Bookings
-    public Task<List<BookingsAllDto.BookingDto>> GetBookings(CancellationToken ct = default)
-        => GetAsync<List<BookingsAllDto.BookingDto>>("api/admin/bookings", ct)!;
+    public Task<List<BookingDto>> GetBookings(CancellationToken ct = default)
+        => GetAsync<List<BookingDto>>("api/admin/bookings", ct)!;
+    
+    public async Task<bool> ConfirmBooking(int id, CancellationToken ct = default)
+    {
+        await PostAsync<object>($"api/admin/{id}/confirm", null, ct);
+        return true;
+    }
+    
+    public async Task<bool> DeleteBooking(int id, CancellationToken ct = default)
+    {
+        await DeleteAsync($"api/booking/{id}", ct);
+        return true;
+    }
 }

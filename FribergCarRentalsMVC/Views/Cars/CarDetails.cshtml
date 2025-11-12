@@ -1,36 +1,83 @@
-﻿@model FribergCarRentalsMVC.DTOs.CarDto
+﻿@using System.Globalization
+@model FribergCarRentalsMVC.DTOs.CarDto
 
 @{
     ViewData["Title"] = "Bil Detaljer";
+    var sv = CultureInfo.GetCultureInfo("sv-SE");
+    var hasImg = Model?.ImageUrls != null && Model.ImageUrls.Any() && !string.IsNullOrWhiteSpace(Model.ImageUrls.First());
+    var price = Model.PriceRate.ToString("C", sv);
+    
+    var rolesCsv   = Context.Session.GetString("Roles") ?? "";
+    var isAdmin    = rolesCsv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                             .Any(r => r.Equals("Admin", StringComparison.OrdinalIgnoreCase));
+    var customerId = Context.Session.GetInt32("CustomerId");
+    var isCustomer = !isAdmin && customerId != null;
 }
 
 <div class="container mt-4">
     <h1 class="mb-4">Bil Detaljer</h1>
     <div class="row g-4">
         <div class="col-md-6">
-            @if (Model.ImageUrls.Any())
+            @if (hasImg)
             {
                 <img src="@Model.ImageUrls.First()"
                      class="img-fluid rounded border"
-                     alt="@Model.Model"
-                     style="width: 100%; max-height: 400px; object-fit: contain;">
+                     alt="@($"{Model.Brand} {Model.Model}")"
+                     style="width:100%; max-height:400px; object-fit:contain;"
+                     onerror="this.style.display='none';" />
+            }
+            else
+            {
+                <div class="border rounded d-flex align-items-center justify-content-center"
+                     style="width:100%; max-height:400px; height:300px; background:#f1f3f5;">
+                    <span class="text-muted">Ingen bild</span>
+                </div>
             }
         </div>
+
         <div class="col-md-6">
             <div class="card h-100">
                 <div class="card-body">
                     <h2 class="card-title">@Model.Brand @Model.Model</h2>
-                    <p class="card-text"><strong>År:</strong> <span class="fs-6">@Model.Year</span></p>
-                    <p class="card-text"><strong>Färg:</strong> <span class="fs-6">@Model.Color</span></p>
-                    <p class="card-text"><strong>Pris per dag:</strong> <span class="fs-5">@Model.PriceRate.ToString("C")</span></p>
+                    <p class="card-text"><strong>År:</strong> <span class="fs-5">@Model.Year</span></p>
+                    <p class="card-text"><strong>Färg:</strong> <span class="fs-5">@Model.Color</span></p>
+                    <p class="card-text"><strong>Pris per dag:</strong> <span class="fs-5">@price</span></p>
 
-                    <div class="d-flex gap-2 mt-3">
-                        <a asp-controller="Booking"
-                           asp-action="CreateBooking"
-                           asp-route-carId="@Model.Id"
-                           class="btn btn-success">
-                            Boka denna bil
-                        </a>
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+
+                        @if (isCustomer)
+                        {
+                            <a asp-controller="Booking"
+                               asp-action="CreateBooking"
+                               asp-route-carId="@Model.Id"
+                               class="btn btn-success">
+                                Boka denna bil
+                            </a>
+                        }
+                        else if (!isAdmin)
+                        {
+                            <a asp-controller="Auth"
+                               asp-action="Login"
+                               class="btn btn-outline-success"
+                               title="Logga in för att boka">
+                                Logga in för att boka
+                            </a>
+                        }
+                        else if (isAdmin)
+                        {
+                            <a asp-controller="Admin"
+                               asp-action="EditCar"
+                               asp-route-id="@Model.Id"
+                               class="btn btn-warning">
+                                Redigera
+                            </a>
+                            <a asp-controller="Admin"
+                               asp-action="DeleteCar"
+                               asp-route-id="@Model.Id"
+                               class="btn btn-danger">
+                                Ta bort
+                            </a>
+                        }
 
                         <a asp-controller="Cars"
                            asp-action="Index"

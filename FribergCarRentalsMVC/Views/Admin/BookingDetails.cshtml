@@ -1,4 +1,4 @@
-﻿@model FribergCarRentalsMVC.DTOs.BookingsAllDto.BookingDto
+﻿@model FribergCarRentalsMVC.DTOs.BookingDto
 
 @{
     ViewData["Title"] = "Bokningsdetaljer";
@@ -20,3 +20,6 @@
 
     <a asp-controller="Admin" asp-action="ShowBookings" class="btn btn-primary mt-3">Tillbaka till bokningar</a>
 </div>
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

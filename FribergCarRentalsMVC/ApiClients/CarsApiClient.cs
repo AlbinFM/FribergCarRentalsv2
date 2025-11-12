@@ -11,6 +11,6 @@ namespace FribergCarRentalsMVC.ApiClients
             => GetAsync<List<CarDto>>("api/cars", ct)!;
 
         public Task<CarDto?> GetDetails(int id, CancellationToken ct = default)
-            => GetAsync<CarDto>($"api/cars/details/{id}", ct);
+            => GetAsync<CarDto>($"api/cars/{id}", ct); 
     }
 }

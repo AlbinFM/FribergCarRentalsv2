@@ -1,13 +1,31 @@
 ﻿@{
     ViewData["Title"] = "Välkommen";
+
+    var rolesCsv   = Context.Session.GetString("Roles") ?? "";
+    var isAdmin    = rolesCsv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Any(r => r.Equals("Admin", StringComparison.OrdinalIgnoreCase));
+    var customerId = Context.Session.GetInt32("CustomerId");
+    var isLoggedIn = isAdmin || customerId != null;
 }
 
 <div class="text-center py-5">
     <h1 class="display-4">Välkommen till Friberg Car Rentals</h1>
-    <p class="lead">Kör som en kung!</p>
+    <p class="lead">Hyr snabbt, Hyr billigt!</p>
 
     <div class="mt-4">
-        <a class="btn btn-primary btn-lg mx-2" asp-controller="Cars" asp-action="Index">Se våra bilar</a>
-        <a class="btn btn-outline-secondary btn-lg mx-2" asp-controller="Customer" asp-action="Register">Registrera dig</a>
+        <a class="btn btn-primary btn-lg mx-2"
+           asp-controller="Cars"
+           asp-action="Index">
+            Se våra bilar
+        </a>
+
+        @if (!isLoggedIn)
+        {
+            <a class="btn btn-outline-secondary btn-lg mx-2"
+               asp-controller="Auth"
+               asp-action="Register">
+                Registrera dig
+            </a>
+        }
     </div>
 </div>

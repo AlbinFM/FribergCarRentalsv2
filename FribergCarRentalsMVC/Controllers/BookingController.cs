@@ -13,19 +13,17 @@ public class BookingController : Controller
         _api = api;
     }
 
-    // GET: Booking/CreateBookingAsync?carId=5
+    // GET: Booking/CreateBooking
     [HttpGet]
     public IActionResult CreateBooking(int carId)
     {
-        // Hämta customerId från session
         var customerId = HttpContext.Session.GetInt32("CustomerId");
         if (customerId is null)
-            return RedirectToAction("Login", "Customer");
+            return RedirectToAction("Login", "auth");
         
-        var m = new BookingsAllDto.CreateBookingDto
+        var m = new CreateBookingDto
         {
             CarId = carId,
-            CustomerId = customerId.Value,
             StartDate = DateTime.Today,
             EndDate = DateTime.Today
         };
@@ -33,12 +31,11 @@ public class BookingController : Controller
         return View(m);
     }
 
-    // POST: Booking/CreateBookingAsync
+    // POST: Booking/CreateBooking
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateBooking(BookingsAllDto.CreateBookingDto dto)
+    public async Task<IActionResult> CreateBooking(CreateBookingDto dto)
     {
-        // Date validation
         if (dto.StartDate > dto.EndDate)
             ModelState.AddModelError(nameof(dto.EndDate), "Slutdatum måste vara efter startdatum.");
 
@@ -62,12 +59,23 @@ public class BookingController : Controller
     // GET: Booking/Confirmation
     [HttpGet]
     public IActionResult Confirmation() => View();
+    
+    // GET: /Booking/DeleteBooking
+    [HttpGet]
+    public async Task<IActionResult> DeleteBooking(int id)
+    {
+        var list = await _api.MyBookings();
+        var booking = list.FirstOrDefault(b => b.Id == id);
+        if (booking is null) return NotFound();
+
+        return View(booking);
+    }
 
 
-    // POST: Booking/DeleteBookingAsync/{id}
+    // POST: Booking/DeleteBooking/{id}
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteBooking(int id)
+    public async Task<IActionResult> DeleteBookingConfirmed(int id)
     {
         var ok = await _api.DeleteBooking(id);
 
@@ -76,16 +84,16 @@ public class BookingController : Controller
         return RedirectToAction(nameof(MyBookings));
     }
 
-    // GET: Booking/MyBookingsAsync
+    // GET: Booking/MyBookings
     [HttpGet]
     public async Task<IActionResult> MyBookings()
     {
         var customerId = HttpContext.Session.GetInt32("CustomerId");
 
         if (customerId is null)
-            return RedirectToAction("Login", "Customer");
+            return RedirectToAction("Login", "Auth");
 
-        var list = await _api.MyBookings(customerId.Value);
+        var list = await _api.MyBookings();
 
         return View(list);
     }

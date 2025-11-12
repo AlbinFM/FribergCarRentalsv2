@@ -4,3 +4,6 @@
 <h1>@ViewData["Title"]</h1>
 
 <p>ps. Hyr inget.</p>
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

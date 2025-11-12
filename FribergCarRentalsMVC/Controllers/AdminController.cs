@@ -10,31 +10,17 @@ namespace FribergCarRentalsMVC.Controllers
     {
         private readonly IAdminApiClient _api;
         public AdminController(IAdminApiClient api) => _api = api;
-
-        // ===== Dashboard/Index =====
+        
         [HttpGet]
         public IActionResult Dashboard() => View();
 
         [HttpGet]
         public IActionResult Index() => RedirectToAction(nameof(Dashboard));
 
-        // ===== Cars =====
+        //Cars
         [HttpGet]
-        public async Task<IActionResult> ShowCars()
-        {
-            try
-            {
-                var cars = await _api.GetCars();
-                return View(cars);
-            }
-            catch (UnauthorizedAccessException)
-            {
-                TempData["AlertMessage"] = "Din session har gått ut. Logga in igen.";
-                TempData["AlertType"] = "warning";
-                return RedirectToAction("AdminLogin", "AdminAuth");
-            }
-        }
-
+        public IActionResult ShowCars() => RedirectToAction("Index", "Cars");
+        
         [HttpGet]
         public IActionResult CreateCar() => View(new CarDto());
 
@@ -87,11 +73,14 @@ namespace FribergCarRentalsMVC.Controllers
         public async Task<IActionResult> EditCar(CarDto dto, string? imageUrlsString)
         {
             if (!ModelState.IsValid) return View(dto);
-
+            
+            dto.ImageUrls = !string.IsNullOrWhiteSpace(imageUrlsString)
+                ? imageUrlsString.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
+                : new List<string>();
+            
             try
             {
-                await _api.UpdateCar(dto.Id, dto, imageUrlsString);
-
+                await _api.UpdateCar(dto.Id, dto);
                 TempData["AlertMessage"] = "Annons uppdaterad!";
                 TempData["AlertType"] = "warning";
                 return RedirectToAction(nameof(ShowCars));
@@ -126,20 +115,31 @@ namespace FribergCarRentalsMVC.Controllers
         {
             try
             {
-                var ok = await _api.DeleteCar(id);
-                TempData["AlertMessage"] = ok ? "Annons borttagen!" : "Kunde inte ta bort.";
-                TempData["AlertType"] = ok ? "danger" : "secondary";
-                return RedirectToAction(nameof(ShowCars));
+                await _api.DeleteCar(id);
+                TempData["AlertMessage"] = "Annons borttagen!";
+                TempData["AlertType"]    = "danger"; 
+                return RedirectToAction("Index", "Cars");
             }
             catch (UnauthorizedAccessException)
             {
                 TempData["AlertMessage"] = "Din session har gått ut. Logga in igen.";
-                TempData["AlertType"] = "warning";
+                TempData["AlertType"]    = "warning";
                 return RedirectToAction("AdminLogin", "AdminAuth");
+            }
+            catch (HttpRequestException ex)
+            {
+                var msg = ex.Message.Contains("bokningar", StringComparison.OrdinalIgnoreCase) ||
+                          ex.Message.Contains("409")
+                    ? "Kunde inte ta bort: bilen har framtida bekräftade bokningar."
+                    : "Kunde inte ta bort annonsen (kan vara 404 eller annat fel).";
+
+                TempData["AlertMessage"] = msg;
+                TempData["AlertType"]    = "warning";
+                return RedirectToAction("ShowCars", "Admin");
             }
         }
 
-        // ===== Customers =====
+        //Customers
         [HttpGet]
         public async Task<IActionResult> ShowCustomers()
         {
@@ -190,7 +190,7 @@ namespace FribergCarRentalsMVC.Controllers
             }
         }
 
-        [HttpPost, ActionName("DeleteCustomer")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteCustomerConfirmed(int id)
         {
@@ -209,7 +209,7 @@ namespace FribergCarRentalsMVC.Controllers
             }
         }
 
-        // ===== Bookings =====
+        //Bookings
         [HttpGet]
         public async Task<IActionResult> ShowBookings()
         {
@@ -224,6 +224,51 @@ namespace FribergCarRentalsMVC.Controllers
                 TempData["AlertType"] = "warning";
                 return RedirectToAction("AdminLogin", "AdminAuth");
             }
+        }
+        
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmBooking(int id)
+        {
+            try
+            {
+                var ok = await _api.ConfirmBooking(id);
+                TempData["AlertMessage"] = ok ? "Bokning bekräftad!" : "Kunde inte bekräfta bokningen.";
+                TempData["AlertType"] = ok ? "success" : "secondary";
+            }
+            catch (UnauthorizedAccessException)
+            {
+                TempData["AlertMessage"] = "Din session har gått ut. Logga in igen.";
+                TempData["AlertType"] = "warning";
+                return RedirectToAction("AdminLogin", "AdminAuth");
+            }
+
+            return RedirectToAction(nameof(ShowBookings));
+        }
+        
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteBooking(int id)
+        {
+            try
+            {
+                var ok = await _api.DeleteBooking(id);
+                TempData["AlertMessage"] = ok ? "Bokning borttagen!" : "Kunde inte ta bort bokningen.";
+                TempData["AlertType"] = ok ? "danger" : "secondary";
+            }
+            catch (UnauthorizedAccessException)
+            {
+                TempData["AlertMessage"] = "Din session har gått ut. Logga in igen.";
+                TempData["AlertType"] = "warning";
+                return RedirectToAction("AdminLogin", "AdminAuth");
+            }
+            catch (HttpRequestException ex)
+            {
+                TempData["AlertMessage"] = $"Fel vid borttagning: {ex.Message}";
+                TempData["AlertType"] = "danger";
+            }
+
+            return RedirectToAction(nameof(ShowBookings));
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<FribergCarRentalsMVC.DTOs.BookingsAllDto.BookingDto>
+﻿@model IEnumerable<FribergCarRentalsMVC.DTOs.BookingDto>
 @{
     ViewData["Title"] = "Bokningar";
 }
@@ -6,31 +6,81 @@
 <div class="container mt-4">
     <h1 class="mb-4">Bokningar</h1>
 
-    <table class="table">
-        <thead>
-        <tr>
-            <th>CustomerId</th>
-            <th>CarId</th>
-            <th>Startdatum</th>
-            <th>Slutdatum</th>
-            <th>Bekräftad</th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach (var b in Model)
-        {
-            <tr>
-                <td>@b.CustomerId</td>
-                <td>@b.CarId</td>
-                <td>@b.StartDate.ToShortDateString()</td>
-                <td>@b.EndDate.ToShortDateString()</td>
-                <td>@(b.IsConfirmed ? "Ja" : "Nej")</td>
-            </tr>
-        }
-        </tbody>
-    </table>
+    @if (TempData["AlertMessage"] is string msg)
+    {
+        var type = TempData["AlertType"] as string ?? "info";
+        <div class="alert alert-@type">@msg</div>
+    }
 
-    <div class="d-flex justify-content-end" style="margin-right:15vw; margin-bottom:5px;">
+    @if (!(Model?.Any() ?? false))
+    {
+        <div class="alert alert-info">Inga bokningar.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Kund</th>
+                        <th>Bil</th>
+                        <th>Startdatum</th>
+                        <th>Slutdatum</th>
+                        <th>Status</th>
+                        <th>Åtgärder</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var b in Model!)
+                {
+                    <tr>
+                        <td>@b.Id</td>
+                        <td>@b.CustomerName</td>
+                        <td>@b.CarName</td>
+                        <td>@b.StartDate.ToShortDateString()</td>
+                        <td>@b.EndDate.ToShortDateString()</td>
+                        <td>
+                            @if (b.IsConfirmed)
+                            {
+                                <span class="text-success fw-semibold">Bekräftad</span>
+                            }
+                            else
+                            {
+                                <span class="text-warning fw-semibold">Obekräftad</span>
+                            }
+                        </td>
+                        <td>
+                            @if (!b.IsConfirmed)
+                            {
+                                <form asp-controller="Admin"
+                                      asp-action="ConfirmBooking"
+                                      method="post"
+                                      class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@b.Id" />
+                                    <button type="submit" class="btn btn-success btn-sm me-1">Bekräfta</button>
+                                </form>
+                            }
+                            
+                            <form asp-controller="Admin"
+                                  asp-action="DeleteBooking"
+                                  method="post"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Ta bort bokning #@b.Id?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@b.Id" />
+                                <button type="submit" class="btn btn-danger btn-sm">Ta bort</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+
+    <div class="d-flex justify-content-end mt-3">
         <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-secondary">Tillbaka till dashboard</a>
     </div>
 </div>

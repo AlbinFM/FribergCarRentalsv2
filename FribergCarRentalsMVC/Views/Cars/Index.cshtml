@@ -1,11 +1,28 @@
-﻿@model IEnumerable<FribergCarRentalsMVC.DTOs.CarDto>
+﻿@using System.Globalization
+@model IEnumerable<FribergCarRentalsMVC.DTOs.CarDto>
 
 @{
     ViewData["Title"] = "Tillgängliga bilar";
+    var sv = CultureInfo.GetCultureInfo("sv-SE");
+    var hasAny = Model?.Any() == true;
+    
+    var rolesCsv = Context.Session.GetString("Roles") ?? "";
+    var isAdmin = rolesCsv
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .Any(r => r.Equals("Admin", StringComparison.OrdinalIgnoreCase));
+    var customerId = Context.Session.GetInt32("CustomerId");
+    var isCustomer = !isAdmin && customerId != null;
 }
 
 <div class="container mt-4">
     <h1 class="mb-4">Tillgängliga bilar</h1>
+    
+    @if (isAdmin)
+    {
+        <div class="mb-3">
+            <a asp-controller="Admin" asp-action="CreateCar" class="btn btn-success">Lägg till bil</a>
+        </div>
+    }
 
     @if (TempData["AlertMessage"] is string msg)
     {
@@ -16,7 +33,7 @@
         </div>
     }
 
-    @if (!Model.Any())
+    @if (!hasAny)
     {
         <div class="alert alert-warning text-center">
             Det finns inga tillgängliga bilar just nu. Återkom vid ett senare tillfälle!
@@ -25,27 +42,67 @@
     else
     {
         <div class="row">
-            @foreach (var car in Model)
+            @foreach (var car in Model!)
             {
+                var hasImg = car.ImageUrls != null && car.ImageUrls.Any() && !string.IsNullOrWhiteSpace(car.ImageUrls.First());
                 <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                        @if (car.ImageUrls.Any())
+                    <div class="card h-100 shadow-sm">
+                        @if (hasImg)
                         {
-                            <img src="@car.ImageUrls.First()" class="card-img-top" alt="@car.Model" style="height: 200px; object-fit: cover;">
+                            <img src="@car.ImageUrls.First()"
+                                 class="card-img-top"
+                                 alt="@car.Model"
+                                 style="height:200px; object-fit:cover;"
+                                 loading="lazy"/>
                         }
                         <div class="card-body">
                             <h5 class="card-title">@car.Brand @car.Model</h5>
                             <p class="card-text mb-1">År: @car.Year</p>
                             <p class="card-text mb-1">Färg: @car.Color</p>
-                            <p class="card-text fw-semibold">Pris per dag: @car.PriceRate.ToString("C")</p>
+                            <p class="card-text fw-semibold">Pris per dag: @car.PriceRate.ToString("C", sv)</p>
                         </div>
-                        <div class="card-footer d-flex gap-2">
+                        <div class="card-footer d-flex flex-wrap gap-2">
+                            
+                            @if (isCustomer)
+                            {
+                                <a asp-controller="Booking"
+                                   asp-action="CreateBooking"
+                                   asp-route-carId="@car.Id"
+                                   class="btn btn-success">
+                                    Boka denna bil
+                                </a>
+                            }
+                            else if (!isAdmin)
+                            {
+                                <a asp-controller="Auth"
+                                   asp-action="Login"
+                                   class="btn btn-outline-success">
+                                    Logga in för att boka
+                                </a>
+                            }
+                            
                             <a asp-controller="Cars"
                                asp-action="CarDetails"
                                asp-route-id="@car.Id"
                                class="btn btn-primary">
                                 Gå till detaljer
                             </a>
+                            
+                            @if (isAdmin)
+                            {
+                                <a asp-controller="Admin"
+                                   asp-action="EditCar"
+                                   asp-route-id="@car.Id"
+                                   class="btn btn-warning">
+                                    Redigera
+                                </a>
+                                <a asp-controller="Admin"
+                                   asp-action="DeleteCar"
+                                   asp-route-id="@car.Id"
+                                   class="btn btn-danger">
+                                    Ta bort
+                                </a>
+                            }
                         </div>
                     </div>
                 </div>

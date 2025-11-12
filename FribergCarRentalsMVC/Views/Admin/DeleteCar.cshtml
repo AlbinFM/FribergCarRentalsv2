@@ -23,13 +23,19 @@
             <dd class="col-sm-8">@Model.PriceRate</dd>
         </dl>
 
-        <form asp-controller="Admin" asp-action="DeleteCarConfirmed" method="post">
+        <form asp-controller="Admin"
+              asp-action="DeleteCarConfirmed"
+              asp-route-id="@Model.Id"
+              method="post">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="Id" />
             <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-danger w-50">Radera</button>
-                <a asp-controller="Admin" asp-action="ShowCars" class="btn btn-secondary w-50">Tillbaka</a>
+                <a asp-controller="Cars" asp-action="Index" class="btn btn-secondary w-50">Tillbaka</a>
             </div>
         </form>
     </div>
 </div>
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

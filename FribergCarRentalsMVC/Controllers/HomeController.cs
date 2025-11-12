@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using FribergCarRentalsMVC.Models;   // <- viktigt
+using FribergCarRentalsMVC.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FribergCarRentalsMVC.Controllers

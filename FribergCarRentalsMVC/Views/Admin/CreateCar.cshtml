@@ -43,14 +43,17 @@
             </div>
             
             <div class="form-group">
-                <label class="control-label">Bild-URL(s)</label>
-                <input name="imageUrlsString" class="form-control" placeholder="URL1, URL2, URL3" />
+                <label class="control-label">Bild-URL</label>
+                <input name="imageUrlsString" class="form-control" placeholder="Bild-URL på bilen" />
             </div>
 
             <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary w-50">Skapa annons</button>
-                <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-secondary w-50">Tillbaka</a>
+                <a asp-controller="Cars" asp-action="Index" class="btn btn-secondary w-50">Tillbaka</a>
             </div>
         </form>
     </div>
 </div>
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

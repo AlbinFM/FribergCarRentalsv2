@@ -8,3 +8,6 @@
 <p><strong>E-post:</strong> @Model.Email</p>
 
 <a asp-controller="Admin" asp-action="ShowCustomers" class="btn btn-secondary">Tillbaka till kunder</a>
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

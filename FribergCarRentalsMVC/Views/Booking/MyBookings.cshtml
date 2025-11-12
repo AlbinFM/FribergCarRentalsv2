@@ -1,4 +1,4 @@
-﻿@model IEnumerable<FribergCarRentalsMVC.DTOs.BookingsAllDto.BookingDto>
+﻿@model IEnumerable<FribergCarRentalsMVC.DTOs.BookingDto>
 
 @{
     ViewData["Title"] = "Mina bokningar";
@@ -19,35 +19,44 @@
     else
     {
         <div class="table-responsive">
-            <table class="table table-bordered table-striped">
+            <table class="table table-bordered table-striped align-middle">
                 <thead class="table-dark">
-                    <tr>
-                        <th>CarId</th>
-                        <th>Startdatum</th>
-                        <th>Slutdatum</th>
-                        <th>Bekräftad</th>
-                        <th>Åtgärder</th>
-                    </tr>
+                <tr>
+                    <th>Bil</th>
+                    <th>Startdatum</th>
+                    <th>Slutdatum</th>
+                    <th>Status</th>
+                    <th style="width:160px;">Åtgärder</th>
+                </tr>
                 </thead>
                 <tbody>
-                @foreach (var b in Model)
+                @foreach (var b in Model!)
                 {
+                    var carName = b.Car != null
+                        ? $"{b.Car.Brand} {b.Car.Model}"
+                        : $"Bil #{b.CarId}";
+
                     <tr>
-                        <td>@b.CarId</td>
+                        <td>@carName</td>
                         <td>@b.StartDate.ToShortDateString()</td>
                         <td>@b.EndDate.ToShortDateString()</td>
-                        <td>@(b.IsConfirmed ? "Ja" : "Nej")</td>
+                        <td>@(b.IsConfirmed ? "Bekräftad" : "Obekräftad")</td>
                         <td>
-                            @if (b.StartDate > DateTime.Now)
+                            <a asp-controller="Cars"
+                               asp-action="CarDetails"
+                               asp-route-id="@b.CarId"
+                               class="btn btn-outline-primary btn-sm me-2">
+                                Visa bil
+                            </a>
+                            
+                            @if (b.StartDate.Date > DateTime.Today)
                             {
-                                <form asp-controller="Booking"
-                                      asp-action="DeleteBooking"
-                                      asp-route-id="@b.Id"
-                                      method="post"
-                                      onsubmit="return confirm('Är du säker på att du vill avboka?');">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-danger btn-sm">Avboka</button>
-                                </form>
+                                <a asp-controller="Booking"
+                                   asp-action="DeleteBooking"
+                                    asp-route-id="@b.Id"
+                                    class="btn btn-danger btn-sm">
+                                    Avboka
+                                </a>
                             }
                             else
                             {
@@ -61,3 +70,7 @@
         </div>
     }
 </div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

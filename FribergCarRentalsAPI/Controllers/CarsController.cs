@@ -6,52 +6,41 @@ using Microsoft.EntityFrameworkCore;
 namespace FribergCarRentalsAPI.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/cars")] 
     public class CarsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        public CarsController(AppDbContext context) => _context = context;
 
-        public CarsController(AppDbContext context)
-        {
-            _context = context;
-        }
-
-        // GET: api/cars
+        // GET: /api/cars
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> GetAvailableCars()
         {
-            var bookedCarIds = await _context.Bookings
-                .Where(b => b.IsConfirmed && b.EndDate >= DateTime.Today)
-                .Select(b => b.CarId)
-                .ToListAsync();
+            var today = DateTime.UtcNow.Date;
 
             var availableCars = await _context.Cars
-                .Where(c => !bookedCarIds.Contains(c.Id))
+                .AsNoTracking()
+                .Where(c => !_context.Bookings.Any(b =>
+                    b.CarId == c.Id &&
+                    b.IsConfirmed &&
+                    b.EndDate >= today))
                 .ToListAsync();
 
-            var dtoList = availableCars
-                .Select(car => DtoMapper.MapToCarDto(car))
-                .ToList();
-
+            var dtoList = availableCars.Select(DtoMapper.MapToCarDto).ToList();
             return Ok(dtoList);
         }
 
-        // GET: api/cars/details/5
-        [HttpGet("details/{id:int}")]
-        public async Task<IActionResult> CarDetailsAsync(int? id)
+        // GET: /api/cars/{id}
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetCarById(int id)
         {
-            if (id == null)
-                return NotFound();
-
             var car = await _context.Cars
-                .FirstOrDefaultAsync(c => c.Id == id.Value);
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == id);
 
-            if (car == null)
-                return NotFound();
+            if (car is null) return NotFound();
 
-            var dto = DtoMapper.MapToCarDto(car);
-
-            return Ok(dto);
+            return Ok(DtoMapper.MapToCarDto(car));
         }
     }
 }

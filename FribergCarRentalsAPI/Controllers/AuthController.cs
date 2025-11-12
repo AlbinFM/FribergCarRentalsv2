@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using FribergCarRentalsAPI.Constants;
+﻿using FribergCarRentalsAPI.Constants;
 using FribergCarRentalsAPI.Data;
 using FribergCarRentalsAPI.DTOs;
 using FribergCarRentalsAPI.Services;
@@ -22,7 +21,7 @@ namespace FribergCarRentalsAPI.Controllers
             _config = config;
         }
 
-// POST: api/auth/login
+        // POST: api/auth/login
         [HttpPost("login")]
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] CustomerLoginDto dto)
@@ -46,13 +45,11 @@ namespace FribergCarRentalsAPI.Controllers
             });
         }
 
-        // POST: api/auth/admin/login
+
         [HttpPost("admin/login")]
         [AllowAnonymous]
         public async Task<IActionResult> AdminLogin([FromBody] AdminLoginDto dto)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
             var user = await _userManager.FindByEmailAsync(dto.Email);
             if (user is null) return Unauthorized();
 
@@ -60,18 +57,10 @@ namespace FribergCarRentalsAPI.Controllers
             if (!valid) return Unauthorized();
 
             var roles = await _userManager.GetRolesAsync(user);
-            if (!roles.Contains(ApiRoles.Admin))
-                return Forbid();
+            if (!roles.Contains(ApiRoles.Admin)) return Forbid();
 
             var (token, expiresAt) = TokenHelper.Generate(user, roles, _config);
-
-            return Ok(new AuthResponseDto
-            {
-                Token = token,
-                ExpiresAt = expiresAt,
-                Roles = roles.ToList()
-            });
+            return Ok(new AuthResponseDto { Token = token, ExpiresAt = expiresAt, Roles = roles.ToList() });
         }
-
     }
 }

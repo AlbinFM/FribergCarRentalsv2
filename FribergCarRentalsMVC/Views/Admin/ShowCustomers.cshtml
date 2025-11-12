@@ -66,3 +66,6 @@
 <div class="d-flex justify-content-end" style="margin-right:13vw; margin-bottom:5px;">
     <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-secondary">Tillbaka till dashboard</a>
 </div>
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

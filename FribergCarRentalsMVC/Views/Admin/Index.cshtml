@@ -21,7 +21,7 @@
                 <div class="card-body text-center d-flex flex-column">
                     <h5 class="card-title">Hantera kunder</h5>
                     <p class="card-text flex-grow-1">Visa, redigera eller ta bort kundinformation.</p>
-                    <a class="btn btn-primary mt-auto" asp-controller="User" asp-action="Index">Gå till kunder</a>
+                    <a class="btn btn-primary mt-auto" asp-controller="Admin" asp-action="ShowCustomers">Gå till kunder</a>
                 </div>
             </div>
         </div>
@@ -31,9 +31,12 @@
                 <div class="card-body text-center d-flex flex-column">
                     <h5 class="card-title">Hantera bokningar</h5>
                     <p class="card-text flex-grow-1">Visa eller ta bort bokningar.</p>
-                    <a class="btn btn-primary mt-auto" asp-controller="Booking" asp-action="Index">Gå till bokningar</a>
+                    <a class="btn btn-primary mt-auto" asp-controller="Admin" asp-action="ShowBookings">Gå till bokningar</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

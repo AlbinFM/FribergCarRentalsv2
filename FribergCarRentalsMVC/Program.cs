@@ -1,3 +1,4 @@
+using FribergCarRentalsMVC;
 using FribergCarRentalsMVC.ApiClients;
 using FribergCarRentalsMVC.ApiClients.Interfaces;
 using FribergCarRentalsMVC.Options;
@@ -6,10 +7,8 @@ using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ---- Options ----
 builder.Services.Configure<ApiOptions>(builder.Configuration.GetSection("Api"));
 
-// ---- MVC + Session ----
 builder.Services.AddControllersWithViews();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(opt =>
@@ -20,10 +19,9 @@ builder.Services.AddSession(opt =>
 });
 builder.Services.AddHttpContextAccessor();
 
-// ---- Delegating handler som sätter Bearer från session ----
 builder.Services.AddTransient<JwtSessionHandler>();
 
-// ---- Auth-klient + service ----
+//Auth-klient + service
 builder.Services.AddHttpClient<IAuthApiClient, AuthApiClient>((sp, http) =>
 {
     var api = sp.GetRequiredService<IOptions<ApiOptions>>().Value;
@@ -33,7 +31,7 @@ builder.Services.AddHttpClient<IAuthApiClient, AuthApiClient>((sp, http) =>
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 
-// ---- Övriga ApiClients (alla med JWT-handler) ----
+//Övriga ApiClients
 builder.Services.AddHttpClient<ICarsApiClient, CarsApiClient>((sp, http) =>
 {
     var api = sp.GetRequiredService<IOptions<ApiOptions>>().Value;
@@ -55,13 +53,6 @@ builder.Services.AddHttpClient<IAdminApiClient, AdminApiClient>((sp, http) =>
 })
 .AddHttpMessageHandler<JwtSessionHandler>();
 
-builder.Services.AddHttpClient<ICustomerApiClient, CustomerApiClient>((sp, http) =>
-    {
-        var api = sp.GetRequiredService<IOptions<ApiOptions>>().Value;
-        http.BaseAddress = new Uri(api.BaseUrl);
-    })
-    .AddHttpMessageHandler<JwtSessionHandler>();
-
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -75,7 +66,10 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseSession();     
+app.UseSession();   
+
+app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllerRoute(

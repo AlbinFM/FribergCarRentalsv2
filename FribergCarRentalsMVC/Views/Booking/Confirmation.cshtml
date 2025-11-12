@@ -11,3 +11,6 @@
         <a asp-controller="Booking" asp-action="MyBookings" class="btn btn-outline-secondary ms-2">Visa mina bokningar</a>
     </div>
 </div>
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}
