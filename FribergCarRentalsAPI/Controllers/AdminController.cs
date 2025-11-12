@@ -52,7 +52,7 @@ namespace FribergCarRentalsAPI.Controllers
             return CreatedAtRoute("GetAdminCarById", new { id = car.Id }, DtoMapper.MapToCarDto(car));
         }
 
-        // PUT: api/admin/cars/5
+        // PUT: api/admin/cars/{id}
         [HttpPut("cars/{id:int}")]
         public async Task<IActionResult> UpdateCar(int id, [FromBody] CarDto dto)
         {

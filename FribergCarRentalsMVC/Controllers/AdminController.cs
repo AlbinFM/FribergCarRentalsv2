@@ -73,17 +73,23 @@ namespace FribergCarRentalsMVC.Controllers
         public async Task<IActionResult> EditCar(CarDto dto, string? imageUrlsString)
         {
             if (!ModelState.IsValid) return View(dto);
-            
+
             dto.ImageUrls = !string.IsNullOrWhiteSpace(imageUrlsString)
                 ? imageUrlsString.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList()
                 : new List<string>();
-            
+
             try
             {
                 await _api.UpdateCar(dto.Id, dto);
                 TempData["AlertMessage"] = "Annons uppdaterad!";
                 TempData["AlertType"] = "warning";
                 return RedirectToAction(nameof(ShowCars));
+            }
+            catch (UnauthorizedAccessException)
+            {
+                TempData["AlertMessage"] = "Din session har gått ut. Logga in igen.";
+                TempData["AlertType"] = "warning";
+                return RedirectToAction("AdminLogin", "AdminAuth");
             }
             catch (HttpRequestException ex)
             {

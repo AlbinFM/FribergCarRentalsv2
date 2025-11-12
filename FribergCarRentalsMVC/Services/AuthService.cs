@@ -75,11 +75,6 @@ namespace FribergCarRentalsMVC.Services
                 .Any(r => r.Equals("Admin", StringComparison.OrdinalIgnoreCase));
         }
         
-        public bool IsAuthenticated()
-        {
-            return !string.IsNullOrEmpty(_ctx.HttpContext!.Session.GetString("Jwt"));
-        }
-        
         private void SaveAuth(AuthResponseDto auth, string email)
         {
             var http = _ctx.HttpContext!;

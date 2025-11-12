@@ -7,7 +7,7 @@ namespace FribergCarRentalsMVC.ApiClients.Interfaces
         // Cars
         Task<CarDto?> GetCarId(int id, CancellationToken ct = default);
         Task<CarDto> CreateCar(CarDto dto, CancellationToken ct = default);
-        public Task<CarDto> UpdateCar(int id, CarDto dto, CancellationToken ct = default);
+        Task UpdateCar(int id, CarDto dto, CancellationToken ct = default);
         Task<bool> DeleteCar(int id, CancellationToken ct = default);
 
         // Customers

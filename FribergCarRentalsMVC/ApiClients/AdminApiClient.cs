@@ -17,9 +17,8 @@ public class AdminApiClient : BaseApiClient, IAdminApiClient
     public Task<CarDto> CreateCar(CarDto dto, CancellationToken ct = default)
         => PostAsync<CarDto>("api/admin/cars", dto, ct)!;
 
-    public Task<CarDto> UpdateCar(int id, CarDto dto, CancellationToken ct = default)
-        => PostAsync<CarDto>($"api/admin/cars/{id}", dto, ct)!;
-
+    public Task UpdateCar(int id, CarDto dto, CancellationToken ct = default)
+        => PutAsync($"api/admin/cars/{id}", dto, ct);
 
     public async Task<bool> DeleteCar(int id, CancellationToken ct = default)
     {
