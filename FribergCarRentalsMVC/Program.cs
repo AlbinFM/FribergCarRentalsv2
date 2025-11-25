@@ -1,4 +1,3 @@
-using FribergCarRentalsMVC;
 using FribergCarRentalsMVC.ApiClients;
 using FribergCarRentalsMVC.ApiClients.Interfaces;
 using FribergCarRentalsMVC.Options;

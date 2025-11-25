@@ -1,4 +1,5 @@
-﻿using FribergCarRentalsMVC.DTOs;
+﻿using FribergCarRentalsMVC.ApiClients.Interfaces;
+using FribergCarRentalsMVC.DTOs;
 
 namespace FribergCarRentalsMVC.ApiClients;
 

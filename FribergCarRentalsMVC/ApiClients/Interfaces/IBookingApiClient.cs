@@ -1,6 +1,6 @@
 ﻿using FribergCarRentalsMVC.DTOs;
 
-namespace FribergCarRentalsMVC;
+namespace FribergCarRentalsMVC.ApiClients.Interfaces;
 
 public interface IBookingApiClient
 {

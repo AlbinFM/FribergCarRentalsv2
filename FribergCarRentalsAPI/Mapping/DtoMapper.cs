@@ -1,4 +1,4 @@
-﻿using FribergCarRentalsAPI.Data.Models;
+﻿ using FribergCarRentalsAPI.Data.Models;
 using FribergCarRentalsAPI.DTOs;
 
 namespace FribergCarRentalsAPI.Mapping

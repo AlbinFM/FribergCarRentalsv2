@@ -52,7 +52,7 @@ namespace FribergCarRentalsMVC.Services
         {
             var created = await _authApi.Register(dto, ct);
             if (created is null)
-                throw new HttpRequestException("Registration returned no content.");
+                throw new HttpRequestException("Registreringen misslyckades.");
             
             return await Login(new CustomersAllDto.LoginDto
             {

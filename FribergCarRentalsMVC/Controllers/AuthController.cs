@@ -34,7 +34,7 @@ namespace FribergCarRentalsMVC.Controllers
                 TempData["AlertType"] = "success";
                 return RedirectToAction("Index", "Home");
             }
-            catch (InvalidOperationException ex) when (ex.Message.Contains("already in use", StringComparison.OrdinalIgnoreCase))
+            catch (InvalidOperationException ex) when (ex.Message.Contains("Används redan"))
             {
                 ModelState.AddModelError(nameof(dto.Email), "E-postadressen används redan.");
                 return View(dto);

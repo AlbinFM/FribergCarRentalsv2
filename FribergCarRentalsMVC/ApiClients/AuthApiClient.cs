@@ -1,5 +1,4 @@
-﻿// ApiClients/AuthApiClient.cs
-using FribergCarRentalsMVC.ApiClients.Interfaces;
+﻿using FribergCarRentalsMVC.ApiClients.Interfaces;
 using FribergCarRentalsMVC.DTOs;
 
 namespace FribergCarRentalsMVC.ApiClients
